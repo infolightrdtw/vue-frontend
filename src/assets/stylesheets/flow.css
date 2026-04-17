@@ -1,0 +1,565 @@
+/* flow */
+.info-flowDesigner svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+}
+
+.flow-activity {
+    width: 120px;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 5px;
+    border: 1px solid #000;
+    border-radius: 10px;
+    -moz-box-shadow: 3px 3px 6px #000; /* 老的 Firefox */
+    box-shadow: 3px 3px 6px #000;
+    text-align: center;
+    font-size: 14px;
+    z-index: 3;
+}
+
+.netflow .flow-activity,
+.processor .flow-activity,
+.line-editor .flow-activity{
+    font-size: 12px;
+}
+
+.activity-text{
+    margin-left: 16px;
+}
+
+.netflow .activity-text,
+.processor .activity-text,
+.line-editor .activity-text{
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+}
+
+.StartActivity,
+.EndActivity {
+    width: 80px;
+}
+
+.ParallelActivity {
+    width: 360px;
+    height: 75px;
+    border: 1px solid #a7a7a7;
+    border-radius: 0px;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    padding: 0px;
+}
+
+.IfElseActivity {
+    width: 360px;
+    height: 120px;
+    border: 1px dotted #a7a7a7;
+    border-radius: 0px;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    padding: 0px;
+}
+
+.ParallelBranchActivity,
+.IfElseBranchActivity,
+.LoopActivity  {
+    width: 160px;
+    height: 75px;
+    border: 1px solid #c7c7c7;
+    border-radius: 5px;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    padding: 0px;
+}
+
+.ParallelActivity > .activity-text,
+.IfElseActivity  > .activity-text
+{
+    width: 100%;
+    height: 20px;
+    color:transparent;
+    background-color: transparent;
+    position: absolute;
+    z-index: 4;
+}
+/*
+.IfElseActivity  > .activity-text{
+   position: absolute;
+   width: 140px;
+   height: 40px;
+   line-height: 40px;
+   z-index: 4;
+}*/
+
+.ParallelBranchActivity > .activity-text,
+.IfElseBranchActivity > .activity-text
+{
+    width: 100%;
+   /* height: 20px;*/
+    background-color: transparent;
+    z-index: 4;
+}
+
+.LoopActivity > .activity-text
+{
+    width: 100%;
+    height: 20px;
+    background-color: transparent;
+    z-index: 4;
+}
+
+
+.ParallelBranchActivity > .flow-activity,
+.IfElseBranchActivity > .flow-activity,
+.LoopActivity > .flow-activity {
+    margin: auto 0 auto 15px;
+    display: inline-block;
+}
+
+.ParallelBranchActivity.vertical > .flow-activity,
+.IfElseBranchActivity.vertical > .flow-activity,
+.LoopActivity.vertical > .flow-activity {
+    margin: 0px auto;
+    display: block;
+}
+
+.ParallelBranchActivity > .flow-activity + .flow-activity,
+.IfElseBranchActivity > .flow-activity + .flow-activity,
+.LoopActivity > .flow-activity + .flow-activity {
+    margin-top: 15px;
+}
+
+.ParallelBranchActivity > .flow-activity + .flow-activity >.arrow-div, 
+.IfElseBranchActivity > .flow-activity + .flow-activity >.arrow-div,
+.LoopActivity > .flow-activity + .flow-activity >.arrow-div {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    left: -15px;
+    top: 50%;
+    margin-top: -8px;
+    background: url('../images/arrow2.png') no-repeat center center;
+}
+
+.ParallelBranchActivity.vertical  > .flow-activity + .flow-activity >.arrow-div,
+.IfElseBranchActivity.vertical  > .flow-activity + .flow-activity >.arrow-div,
+.LoopActivity.vertical  > .flow-activity + .flow-activity >.arrow-div {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    left: 50%;
+    top: -8px;
+    margin-left: -8px;
+    background: url('../images/arrow.png') no-repeat center center;
+}
+
+.tool-activity {
+    width: 130px;
+    height: 40px;
+    margin: 8px;
+    padding: 5px;
+    -moz-box-shadow: none;
+    text-align: left;
+    box-shadow: none;
+}
+
+.netflow .tool-activity,
+.processor .tool-activity  {
+    width: 120px;
+    height: 25px;
+}
+
+.tool-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-top: 5px;
+}
+
+.netflow .tool-icon,
+.processor .tool-icon{
+    margin-top: 1px;
+}
+
+.tool-text {
+    vertical-align: top;
+    margin-left: 20px;
+}
+
+.activity-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    margin-top: -8px;
+}
+
+.ParallelActivity > .activity-icon,
+.ParallelBranchActivity > .activity-icon,
+.IfElseActivity > .activity-icon,
+.IfElseBranchActivity > .activity-icon,
+.LoopActivity > .activity-icon {
+    top: 2px;
+    margin-top: 0;
+}
+
+.StartActivity >.activity-icon {
+    background: url('../images/flstart.png') no-repeat center center;
+}
+
+.EndActivity > .activity-icon {
+    background: url('../images/flend.png') no-repeat center center;
+}
+
+.StandActivity > .tool-icon,
+.StandActivity >.activity-icon {
+    background: url('../images/flstand.png') no-repeat center center;
+}
+
+.ApproveActivity > .tool-icon,
+.ApproveActivity > .activity-icon {
+    background: url('../images/flapprove.png') no-repeat center center;
+}
+
+.MultiApproveActivity > .tool-icon,
+.MultiApproveActivity > .activity-icon {
+    background: url('../images/fldetail.png') no-repeat center center;
+}
+
+.SeqApproveActivity > .tool-icon,
+.SeqApproveActivity > .activity-icon {
+    background: url('../images/flseq.png') no-repeat center center;
+}
+
+
+.NotifyActivity > .tool-icon,
+.NotifyActivity > .activity-icon {
+    background: url('../images/flnotify.png') no-repeat center center;
+}
+
+.ValidateActivity > .tool-icon,
+.ValidateActivity > .activity-icon {
+    background: url('../images/flvalidate.png') no-repeat center center;
+}
+
+.ProcedureActivity > .tool-icon,
+.ProcedureActivity > .activity-icon {
+    background: url('../images/flprocedure.png') no-repeat center center;
+}
+
+.BatchMoveActivity > .tool-icon,
+.BatchMoveActivity > .activity-icon {
+    background: url('../images/infotransaction.ico') no-repeat center center;
+}
+
+.SapSubmitActivity > .tool-icon,
+.SapSubmitActivity > .activity-icon {
+    background: url('../images/flprocedure.png') no-repeat center center;
+}
+
+.RecMailActivity > .tool-icon,
+.RecMailActivity > .activity-icon {
+    background: url('../images/mail.png') no-repeat center center;
+}
+
+.WebServiceActivity > .tool-icon,
+.WebServiceActivity > .activity-icon {
+    background: url('../images/servicemanager.ico') no-repeat center center;
+}
+
+.WebParserActivity > .tool-icon,
+.WebParserActivity > .activity-icon {
+    background: url('../images/servicemanager.ico') no-repeat center center;
+}
+
+.StartFlowActivity > .tool-icon,
+.StartFlowActivity > .activity-icon {
+    background: url('../images/flow.png') no-repeat center center;
+}
+
+.SendMessageActivity > .tool-icon,
+.SendMessageActivity > .activity-icon {
+    background: url('../images/mail.png') no-repeat center center;
+}
+
+
+.ReturnActivity > .tool-icon,
+.ReturnActivity > .activity-icon,
+.BreakActivity > .tool-icon,
+.BreakActivity > .activity-icon {
+    background: url('../images/flreturn.png') no-repeat center center;
+}
+
+.RejectActivity > .tool-icon,
+.RejectActivity > .activity-icon {
+    background: url('../images/flreject.png') no-repeat center center;
+}
+
+.ParallelActivity > .tool-icon,
+.ParallelActivity > .activity-icon {
+    background: url('../images/flparallel.png') no-repeat center center;
+}
+
+.SequenceActivity > .tool-icon,
+.ParallelBranchActivity > .activity-icon {
+    background: url('../images/parallelbranch.png') no-repeat center center;
+}
+
+.IfElseActivity > .tool-icon ,
+.IfElseActivity > .activity-icon {
+    background: url('../images/flifelse.png') no-repeat center center;
+}
+
+.IfElseBranchActivity > .tool-icon,
+.IfElseBranchActivity > .activity-icon {
+    background: url('../images/ifelsebranch.png') no-repeat center center;
+}
+
+.SubFlowActivity > .tool-icon,
+.SubFlowActivity > .activity-icon,
+.SubProcessorActivity > .tool-icon,
+.SubProcessorActivity > .activity-icon {
+    background: url('../images/flow.png') no-repeat center center;
+}
+
+
+.LoopActivity > .tool-icon,
+.LoopActivity > .activity-icon {
+    background: url('../images/refresh.png') no-repeat center center;
+}
+
+.AssignActivity > .tool-icon,
+.AssignActivity > .activity-icon {
+    background: url('../images/flprocedure.png') no-repeat center center;
+}
+
+.SqlSelectActivity > .tool-icon,
+.SqlSelectActivity > .activity-icon {
+    background: url('../images/table.png') no-repeat center center;
+}
+
+.SapQueryActivity > .tool-icon,
+.SapQueryActivity > .activity-icon {
+    background: url('../images/table.png') no-repeat center center;
+}
+
+.SqlProcessActivity > .tool-icon,
+.SqlProcessActivity > .activity-icon,
+.SqlImportActivity > .tool-icon,
+.SqlImportActivity > .activity-icon {
+    background: url('../images/storeprocedure.png') no-repeat center center;
+}
+
+.LogActivity > .tool-icon,
+.LogActivity > .activity-icon {
+    background: url('../images/log.png') no-repeat center center;
+}
+
+.WordOutputActivity > .tool-icon,
+.WordOutputActivity > .activity-icon {
+    background: url('../images/word.png') no-repeat center center;
+}
+
+.ExcelOutputActivity > .tool-icon,
+.ExcelOutputActivity > .activity-icon {
+    background: url('../images/excel.png') no-repeat center center;
+}
+
+.FileOutputActivity > .tool-icon,
+.FileOutputActivity > .activity-icon,
+.FilePrintActivity > .tool-icon,
+.FilePrintActivity > .activity-icon {
+    background: url('../images/print.png') no-repeat center center;
+}
+
+.FileInputActivity > .tool-icon,
+.FileInputActivity > .activity-icon {
+    background: url('../images/importfile.png') no-repeat center center;
+}
+
+.FTPActivity > .tool-icon,
+.FTPActivity > .activity-icon {
+    background: url('../images/flprocedure.png') no-repeat center center;
+}
+
+.ChatBotActivity > .tool-icon,
+.ChatBotActivity > .activity-icon {
+    background: url('../images/chat.png') no-repeat center center;
+}
+
+
+.flow-activity.break >.activity-icon {
+    background: url('../images/break.png') no-repeat center center;
+}
+
+.flow-activity.inactive {
+    opacity: 0.3;
+}
+
+
+.flow-segment,
+.segment-body {
+    box-sizing: border-box;
+    border: 1px solid #7f7f7f;
+    border-left: none;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    z-index: 0;
+}
+
+.flow-segment {
+    z-index: 5;
+}
+
+.first-segment {
+    border-left: 1px solid #7f7f7f;
+}
+
+.preview-div {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 2px;
+    top: 50%;
+    margin-top: -8px;
+}
+
+.flow-selected {
+    border: 1px dashed #F00;
+}
+
+.debug-current {
+    border: 3px solid #F00;
+}
+
+.flow-segment.resizing {
+    border: 1px solid #7f7f7f;
+    z-index: 10;
+}
+
+.line-point {
+    background-image: url(../images/drop.svg);
+    background-repeat: no-repeat;
+    background-position:center;
+    background-size: 24px 24px;
+    z-index: 3;
+}
+
+.line-point.dropover {
+    background-image: url(../images/dropover.svg);
+}
+
+.ParallelActivity.dropover,
+.ParallelBranchActivity.dropover,
+.IfElseActivity.dropover,
+.IfElseBranchActivity.dropover,
+.LoopActivity.dropover   {
+    border: 1px solid #FF6347;
+}
+
+.flow-line-editor{
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.flow-line-editor .line-drop{
+    box-sizing: border-box;
+    border: 1px #ccc solid;
+}
+
+.flow-line-editor .line-drop.dropover{
+    border: 1px #FF6347 solid ;
+}
+
+.flow-line-editor .line{
+    height: 100%;
+    background-size: 100%;
+    background-image: url(../images/line.svg);
+}
+
+.flow-line-editor .left .line.from,
+.flow-line-editor .right .line.to
+{
+    transform:rotate(90deg);
+    -ms-transform:rotate(90deg);     /* IE 9 */
+    -moz-transform:rotate(90deg);    /* Firefox */
+    -webkit-transform:rotate(90deg); /* Safari 和 Chrome */
+    -o-transform:rotate(90deg);  /* Opera */
+}
+
+.flow-line-editor .top .line.from,
+.flow-line-editor .bottom .line.to{
+    transform:rotate(180deg);
+    -ms-transform:rotate(180deg);     /* IE 9 */
+    -moz-transform:rotate(180deg);    /* Firefox */
+    -webkit-transform:rotate(180deg); /* Safari 和 Chrome */
+    -o-transform:rotate(180deg);  /* Opera */
+}
+
+.flow-line-editor .right .line.from,
+.flow-line-editor .left .line.to,
+.flow-line-editor .auto .line.from,
+.flow-line-editor .auto .line.to
+ {
+    transform:rotate(270deg);
+    -ms-transform:rotate(270deg);     /* IE 9 */
+    -moz-transform:rotate(270deg);    /* Firefox */
+    -webkit-transform:rotate(270deg); /* Safari 和 Chrome */
+    -o-transform:rotate(270deg);  /* Opera */
+}
+
+.flow-line-editor .line{
+     display: inline-block;
+    box-sizing: border-box;
+}
+
+.flow-line-editor .line.from{
+    border-top: 1px solid #333
+}
+
+.flow-line-editor .line.to{
+    border-bottom: 1px solid #333
+}
+
+.flow-line-editor .auto .line{
+    margin: 0 8px;
+}
+/*preview css*/
+
+.flow-activity.preview{
+    padding: 0 5px;
+    font-size: 12px;
+}
+
+.preview .activity-icon{
+    top: 0px;
+    margin-top: 0px;
+}
+
+.flow-history{
+    padding-left: 16px;
+    background: url('../images/flow_history.png') no-repeat 0 0;
+}
+
+.flow-waiting{
+    padding-left: 16px;
+    background: url('../images/flow_waiting.png') no-repeat  0 0;
+    color: red;
+}
+
+.flow-next{
+    padding-left: 16px;
+    background: url('../images/flow_next.png') no-repeat  0 0;
+}
+
+.exp-table tbody tr:nth-child(1) td.andOr span{
+    display: none;
+}

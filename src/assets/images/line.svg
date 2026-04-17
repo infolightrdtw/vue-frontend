@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" version="1.1">
+  <g class="flow-line" fill="transparent" stroke="black" stroke-width="1">
+  	<path d="M 20 0 L 20 40"></path>
+  	<path d="M 16 29 L 24 29 L 20 40 Z" fill="black"></path>
+  </g>
+</svg>

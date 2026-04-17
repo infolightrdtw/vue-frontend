@@ -1,0 +1,243 @@
+:root{
+  --theme-title-grad-start:#368dff;
+  --theme-title-grad-end:#000ad3;
+  --theme-primary:#000ad3;
+  --theme-table-bg:#d6ecff;
+  --theme-focus-ring: rgba(0,10,211,.25);
+}
+
+/* DataGrid */
+.datagrid-title{
+  background: linear-gradient(to bottom, var(--theme-title-grad-start), var(--theme-title-grad-end));
+  color:#fff;
+}
+.datagrid-toolitem .datagrid-btn{
+  background: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  color:#fff !important;
+}
+.bootstrap-datagrid{ background: var(--theme-table-bg); }
+.bootstrap-datagrid.table-striped > tbody > tr:nth-of-type(odd) > *{ background-color: var(--theme-table-bg) !important; }
+.bootstrap-datagrid.table-hover > tbody > tr:hover > *{ background-color: var(--theme-table-bg) !important; }
+.bootstrap-datagrid tr.info > *{ background-color: var(--theme-table-bg) !important; }
+
+/* DataGrid pager */
+.dg-pager .pagination .page-item.active .page-link{
+  background: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  color:#fff !important;
+}
+.dg-pager .pagination .page-item:not(.disabled):not(.active) .page-link{
+  color: var(--theme-primary) !important;
+}
+.dg-pager .pagination .page-item:not(.disabled):not(.active) .page-link:hover,
+.dg-pager .pagination .page-item:not(.disabled):not(.active) .page-link:focus{
+  color: var(--theme-primary) !important;
+}
+
+/* =========================================
+   DataForm Header 
+   ========================================= */
+.bootstrap-form .card-header {
+  background: linear-gradient(to bottom, var(--theme-title-grad-start), var(--theme-title-grad-end)) !important;
+  color: #fff !important;
+  border-bottom: 1px solid var(--theme-primary) !important;
+}
+.bootstrap-form .card-header h5 {
+  color: #fff !important;
+}
+/* 調整 Header 內的關閉按鈕，讓它在深色背景上清楚可見 */
+.bootstrap-form .card-header .btn-outline-secondary {
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+.bootstrap-form .card-header .btn-outline-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+/* DataForm tabs */
+.bootstrap-form .nav-tabs .nav-link{ color:#000 !important; }
+.bootstrap-form .nav-tabs .nav-link.active{ color: var(--theme-primary) !important; }
+/* Bootstrap 3 fallback */
+.bootstrap-form .nav-tabs > li > a{ color:#000 !important; }
+.bootstrap-form .nav-tabs>li.active>a,
+.bootstrap-form .nav-tabs>li.active>a:hover,
+.bootstrap-form .nav-tabs>li.active>a:focus{
+  color: var(--theme-primary) !important;
+}
+
+/* DataForm editors (buttons/focus) */
+.bootstrap-form .form-editor .btn.btn-primary,
+.bootstrap-form .form-editor .btn-check:checked + .btn,
+.bootstrap-form .form-editor .btn-group .btn.active,
+.bootstrap-form .form-editor .btn-group .btn:active{
+  background: var(--theme-primary) !important;
+  background-image: none !important;
+  border-color: var(--theme-primary) !important;
+  color:#fff !important;
+}
+.bootstrap-form .form-editor .input-group .btn{
+  background: var(--theme-primary) !important;
+  background-image: none !important;
+  border-color: var(--theme-primary) !important;
+  color:#fff !important;
+}
+.bootstrap-form .form-editor .btn:focus,
+.bootstrap-form .form-editor .btn:focus-visible{
+  box-shadow: 0 0 0 .15rem var(--theme-focus-ring) !important;
+  outline: 0 !important;
+}
+.bootstrap-form .form-control:focus{
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 .15rem var(--theme-focus-ring) !important;
+}
+.bootstrap-form .form-editor .btn.btn-outline-secondary{ background-image: none !important; }
+
+/* DataForm footer primary (Save) */
+.bootstrap-form .card-footer .btn.btn-primary{
+  background: linear-gradient(to bottom, var(--theme-title-grad-start), var(--theme-title-grad-end)) !important;
+  border-color: var(--theme-primary) !important;
+  color:#fff !important;
+}
+
+/* EditGrid header */
+.bootstrap-editgrid table.bootstrap-datagrid.editgrid-table > thead > tr > th,
+.bootstrap-editgrid table.table.bootstrap-datagrid.editgrid-table > thead > tr > th{
+  background: var(--theme-table-bg) !important;      /* 淺色表頭 */
+  background-image: none !important;
+  border-bottom-color: rgba(0,0,0,.12) !important;  /* 保持分隔線清楚 */
+  color:#000 !important;
+}
+
+/* =========================================
+   Refval Header&Pager
+   ========================================= */
+/* Refval Header */
+.refval .modal-header {
+  background: linear-gradient(to bottom, var(--theme-title-grad-start), var(--theme-title-grad-end)) !important;
+  color: #fff !important;
+  border-bottom: 1px solid var(--theme-primary) !important;
+}
+.refval .modal-header .modal-title {
+  color: #fff !important;
+}
+.refval .modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Refval Pager*/
+.refval .pagination .page-item.active .page-link {
+  background: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  color: #fff !important;
+}
+.refval .pagination .page-item:not(.disabled):not(.active) .page-link {
+  color: var(--theme-primary) !important;
+}
+.refval .pagination .page-item:not(.disabled):not(.active) .page-link:hover,
+.refval .pagination .page-item:not(.disabled):not(.active) .page-link:focus {
+  color: var(--theme-primary) !important;
+  background-color: rgba(0, 0, 0, 0.05); 
+}
+
+/* =========================================
+   Combobox
+   ========================================= */
+.bootstrap-combobox:focus {
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 .15rem var(--theme-focus-ring) !important;
+}
+
+.bootstrap-combobox option:checked {
+  background-color: var(--theme-primary) !important;
+  color: #fff !important;
+}
+
+/* =========================================
+   Options 
+   ========================================= */
+
+body .btn-check:checked + .btn {
+  background-color: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  color: #fff !important;
+}
+
+.modal-content:has(.options-filter) .modal-header {
+  background: linear-gradient(to bottom, var(--theme-title-grad-start), var(--theme-title-grad-end)) !important;
+  color: #fff !important;
+  border-bottom: 1px solid var(--theme-primary) !important;
+}
+.modal-content:has(.options-filter) .modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.options-query {
+  background-color: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  color: #fff !important;
+}
+
+.options-ok {
+  background: linear-gradient(to bottom, var(--theme-title-grad-start), var(--theme-title-grad-end)) !important;
+  border-color: var(--theme-primary) !important;
+  color: #fff !important;
+}
+
+.options-cancel {
+  background-color: #fff !important;
+  border-color: #ced4da !important;
+  color: #333 !important;
+}
+.options-cancel:hover {
+  background-color: #e9ecef !important;
+  color: #000 !important;
+}
+
+.options-item {
+  background-color: #fff !important;
+  border: 1px solid var(--theme-primary) !important;
+  color: var(--theme-primary) !important;
+}
+
+.options-add {
+  background-color: #fff !important;
+  border: 1px dashed var(--theme-primary) !important;
+  color: var(--theme-primary) !important;
+}
+.options-add:hover {
+  background-color: var(--theme-primary) !important;
+  color: #fff !important;
+}
+
+/* ClientMove Header */
+.clientmove .modal-header {
+  background: linear-gradient(to bottom, var(--theme-title-grad-start), var(--theme-title-grad-end)) !important;
+  color: #fff !important;
+  border-bottom: 1px solid var(--theme-primary) !important;
+}
+.clientmove .modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* ClientMove Pager */
+.clientmove .pagination .page-item.active .page-link {
+  background: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  color: #fff !important;
+}
+.clientmove .pagination .page-item:not(.disabled):not(.active) .page-link {
+  color: var(--theme-primary) !important;
+}
+.clientmove .pagination .page-item:not(.disabled):not(.active) .page-link:hover,
+.clientmove .pagination .page-item:not(.disabled):not(.active) .page-link:focus {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* ClientMove */
+.clientmove .modal-footer .btn-primary {
+  background: linear-gradient(to bottom, var(--theme-title-grad-start), var(--theme-title-grad-end)) !important;
+  border-color: var(--theme-primary) !important;
+  color: #fff !important;
+}

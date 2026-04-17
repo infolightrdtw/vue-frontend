@@ -1,0 +1,12 @@
+{
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "compilerOptions": {
+    "composite": true,
+    "moduleResolution": "node",
+    "module": "esnext",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}

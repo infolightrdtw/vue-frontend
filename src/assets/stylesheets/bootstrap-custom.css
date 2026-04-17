@@ -1,0 +1,498 @@
+body {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+
+  font-size: 14px;
+}
+
+.card-footer .btn{
+	margin: 4px;
+}
+
+.text-right {
+	text-align: right !important;
+}
+
+.hide {
+	display: none !important;
+}
+
+.panel-primary .panel-title {
+	color: #fff;
+}
+
+.bootstrap-form .modal-header .modal-title,
+.refval-modal .modal-header .modal-title {
+	color: #fff;
+}
+
+a {
+    color: #337ab7;
+    text-decoration: none;
+}
+
+.close {
+    float: right;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1;
+    position: absolute;
+    right: 10px;
+    color: #000;
+    text-shadow: 0 1px 0 #fff;
+    filter: alpha(opacity = 20);
+    opacity: .2;
+}
+
+button.close{
+    border: none;
+}
+
+.input-group-btn .btn{
+    height: 100%;
+}
+
+[data-toggle=buttons]>.btn input[type=checkbox], [data-toggle=buttons]>.btn input[type=radio], [data-toggle=buttons]>.btn-group>.btn input[type=checkbox], [data-toggle=buttons]>.btn-group>.btn input[type=radio] {
+    position: absolute;
+    clip: rect(0, 0, 0, 0);
+    pointer-events: none;
+}
+
+.bootstrap-form a[data-bs-toggle="collapse"]:before {
+    content: "\f077"
+}
+
+.bootstrap-form a[data-bs-toggle="collapse"][aria-expanded="false"]:before {
+    content: "\f078"
+}
+
+.form-group{
+    margin-bottom: 15px;
+}
+
+.form-field{
+    width: 100%;
+    text-align: right;
+    height: 34px;
+    line-height: 34px;
+}
+
+.form-control{
+    height: 34px;
+}
+
+textarea.form-control{
+    height: auto;
+}
+
+.input-group-text{
+    height: 34px;
+}
+
+.options-div{
+    display: inline-block;
+}
+
+.options-div label {
+    text-wrap-mode: nowrap;
+}
+
+.popover{
+    padding: 0 !important;
+}
+
+.popover[data-popper-placement="bottom"] a{
+    width: 100%;
+}
+
+.table-condensed > thead > tr > th,
+.table-condensed > tbody > tr > th,
+.table-condensed > tfoot > tr > th,
+.table-condensed > thead > tr > td,
+.table-condensed > tbody > tr > td,
+.table-condensed > tfoot > tr > td {
+    padding: 5px;
+}
+
+.table > thead > tr > td.info,
+.table > tbody > tr > td.info,
+.table > tfoot > tr > td.info,
+.table > thead > tr > th.info,
+.table > tbody > tr > th.info,
+.table > tfoot > tr > th.info,
+.table > thead > tr.info > td,
+.table > tbody > tr.info > td,
+.table > tfoot > tr.info > td,
+.table > thead > tr.info > th,
+.table > tbody > tr.info > th,
+.table > tfoot > tr.info > th {
+    background-color: #d9edf7;
+}
+
+.table > thead > tr > th{
+    background-color: inherit;
+    color: inherit;
+}
+
+
+td.hidden,
+th.hidden {
+    display: none !important;
+}
+
+.bootstrap-form.fit > .modal-dialog,
+.refval-modal.fit > .modal-dialog{
+    max-width: 100%;
+}
+
+.bootstrap-datagrid img {
+    height: 200px;
+}
+
+label {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.label {
+    display: inline;
+    padding: .2em .6em .3em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25em;
+}
+
+.label-danger {
+    background-color: #d9534f;
+}
+
+.alert-warning {
+    color: #8a6d3b;
+}
+
+.alert-danger {
+    color: #a94442;
+}
+
+fieldset > legend
+{
+    font-size: 18px !important;
+    margin-top: -19px;
+    background-color: #fff;
+}
+
+.typeahead>li>a{
+    width: 100%;
+    display: inline-block;
+    color: #000;
+    padding: 3px 20px;
+    font-size:14px;
+}
+
+.typeahead>li>a:hover{
+    color: #fff;
+}
+
+.table-cell-text .input-group{
+    min-width: 80px;
+}
+
+/* main */
+.main .row{
+    height: auto !important;
+}
+
+.main .navbar{
+    padding: 0px;
+}
+
+#menu.min{
+    top: 65px;
+}
+
+#menu .panel-heading{
+    padding: 10px 15px;
+}
+
+#menu .panel-title{
+    margin-bottom: 0px;
+}
+
+#menu a {
+    color: #aaa;
+    font-size: 16px;
+    line-height: 1.1;
+}
+
+.main .list-group-item:hover,
+.main .list-group-item:focus,
+.main .list-group-item.selected {
+    color: #fbff52 !important;
+}
+
+.main .bootstrap-datagrid td{
+    color: inherit;
+}
+
+.badge {
+    display: inline-block;
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    background-color: #777;
+    border-radius: 10px;
+}
+
+.nav-pills a.active>.badge {
+    color: #337ab7;
+    background-color: #fff;
+}
+
+
+
+.navbar-toggle{
+    float: right;
+    margin: 8px 15px 8px 0;
+    padding: 9px;
+    display: none;
+}
+
+.navbar-toggle .icon-bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    border-radius: 1px;
+}
+
+.modal-content {
+   box-shadow: 0 5px 15px rgba(0,0,0,.5)
+}
+
+@media (max-width:767px) {
+    .navbar-toggle{
+        display: inline-block;
+    }
+
+    .modal-content {
+       box-shadow: 0 3px 9px rgba(0,0,0,.5)
+    }
+}
+
+.navbar-toggle .icon-bar + .icon-bar {
+    margin-top: 4px;
+}
+
+.navbar-inverse .navbar-toggle .icon-bar {
+    background-color: #fff;
+}
+
+/*.open > .dropdown-menu {
+  display: block;
+}
+
+.bootstrap-select .dropdown-menu li a {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.dropdown-menu>li>a:focus, .dropdown-menu>li>a:hover {
+    color: #262626;
+    text-decoration: none;
+    background-color: #f5f5f5;
+}
+
+.dropdown-menu>li>a {
+    display: block;
+    padding: 3px 20px;
+    clear: both;
+    font-weight: 400;
+    line-height: 1.42857143;
+    color: #333;
+    white-space: nowrap;
+}
+*/
+
+.page-header {
+    padding-bottom: 9px;
+    margin: 40px 0 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.col-xs-push-1 {
+    left: 8.33333333%;
+}
+
+.col-xs-11 {
+    width: 91.66666667%;
+        position: relative;
+
+}
+
+.col-xs-1 {
+    width: 8.33333333%;
+        position: relative;
+
+}
+
+
+/* glyphicon def*/
+.glyphicon {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale
+}
+
+.glyphicon-plus:before {
+    content: "\f067"
+}
+
+.glyphicon-eye-open:before {
+    content: "\f06e"
+}
+
+.glyphicon-pencil:before {
+    content: "\f040"
+}
+
+.glyphicon-remove:before {
+    content: "\f00d"
+}
+
+.glyphicon-th-list:before {
+    content: "\f00b"
+}
+
+.glyphicon-search:before {
+    content: "\f002"
+}
+
+.glyphicon-copy:before {
+    content: "\f0c5"
+}
+
+.glyphicon-ok:before {
+    content: "\f00c"
+}
+
+.glyphicon-export:before {
+    content: "\f08e"
+}
+
+.glyphicon-print:before {
+    content: "\f02f"
+}
+
+.glyphicon-calendar:before {
+	content: "\f073"
+}
+
+.glyphicon-refresh:before {
+	content: "\f021"
+}
+
+.glyphicon-folder-open:before {
+    content: "\f07c"
+}
+
+.glyphicon-arrow-left:before {
+    content: "\f053"
+}
+
+.glyphicon-arrow-right:before {
+    content: "\f054"
+}
+
+.glyphicon-star-empty:before {
+    content: "\f006"
+}
+
+.glyphicon-user:before {
+    content: "\f007"
+}
+
+.glyphicon-chevron-up:before {
+    content: "\f077"
+}
+
+.glyphicon-chevron-down:before {
+    content: "\f078"
+}
+
+.glyphicon-time:before {
+    content: "\f017"
+}
+
+.glyphicon-arrow-up:before {
+    content: "\f062"
+}
+
+.glyphicon-arrow-down:before {
+    content: "\f063"
+}
+
+.glyphicon-cog:before {
+    content: "\f013"
+}
+
+.glyphicon-globe:before {
+    content: "\f0ac"
+}
+
+.glyphicon-minus:before {
+    content: "\f068"
+}
+
+.glyphicon-paperclip:before {
+    content: "\f0c6"
+}
+
+.bootstrap-form a[data-toggle="collapse"]:before {
+    content: "\f077" !important;
+}
+
+.bootstrap-form a[data-toggle="collapse"][aria-expanded="false"]:before {
+    content: "\f078" !important;
+}
+
+.sort-btn.asc:before{
+	content: "\f0de" !important;
+}
+
+.sort-btn.desc:before{
+	content: "\f0dd" !important;
+}
+
+#menu #collapseIcon .glyphicon:before {
+    content: "\f053" !important;
+}
+
+#menu.min #collapseIcon .glyphicon:before {
+    content: "\f054" !important;
+}
+
+#flowQueryModal .modal-content {
+    width: 600px;
+}
+
+#flowQueryModal .control-label {
+    text-align: right;
+    padding-top: 5px;
+}

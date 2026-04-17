@@ -1,0 +1,1939 @@
+/* icon */
+.icon-info {
+    background: url('../images/info.png') no-repeat center center;
+}
+
+.icon-warning {
+    background: url('../images/warning.png') no-repeat center center;
+}
+
+.icon-database {
+    background: url('../images/database.png') no-repeat center center;
+}
+
+.icon-solution {
+    background: url('../images/solution.png') no-repeat center center;
+}
+
+.icon-security {
+    background: url('../images/security.png') no-repeat center center;
+}
+
+.icon-config {
+    background: url('../images/config.png') no-repeat center center;
+}
+
+.icon-log {
+    background: url('../images/log.png') no-repeat center center;
+}
+
+.icon-language {
+    background: url('../images/label.png') no-repeat center center;
+}
+
+.icon-coldef {
+    background: url('../images/ddtop.png') no-repeat center center;
+}
+
+.icon-user {
+    background: url('../images/user.png') no-repeat center center;
+}
+
+.icon-group {
+    background: url('../images/group.png') no-repeat center center;
+}
+
+.icon-menu {
+    background: url('../images/menu.png') no-repeat center center;
+}
+
+.icon-menu {
+    background: url('../images/menu.png') no-repeat center center;
+}
+
+.icon-deploy {
+    background: url('../images/deploy.png') no-repeat center center;
+}
+
+.icon-org {
+    background: url('../images/org.png') no-repeat center center;
+}
+
+.icon-orgkind {
+    background: url('../images/orgkind.png') no-repeat center center;
+}
+
+.icon-orglevel {
+    background: url('../images/orglevel.png') no-repeat center center;
+}
+
+.icon-notify {
+    background: url('../images/flnotify.png') no-repeat center center;
+}
+
+.icon-cloud {
+    background: url('../images/cloud.png') no-repeat center center;
+}
+
+.icon-community {
+    background: url('../images/flstand.png') no-repeat center center;
+}
+
+.icon-tutor {
+    background: url('../images/tutor.png') no-repeat center center;
+}
+
+.icon-statistics {
+    background: url('../images/statistics.png') no-repeat center center;
+}
+
+.icon-onlineuser {
+    background: url('../images/onlineUser.png') no-repeat center center;
+}
+
+.icon-recordlock {
+    background: url('../images/recordLock.png') no-repeat center center;
+}
+
+.icon-copytable {
+    background: url('../images/copyTable.png') no-repeat center center;
+}
+
+.icon-flowagent {
+    background: url('../images/flowagent.png') no-repeat center center;
+}
+
+.icon-server-top {
+    background: url('../images/serviceTop.png') no-repeat center center;
+}
+
+.icon-server {
+    background: url('../images/service.png') no-repeat center center;
+}
+
+.icon-counter {
+    background: url('../images/dropover.png') no-repeat center center;
+}
+
+.icon-client-top,
+.icon-bootstrap-top,
+.icon-semantic-top {
+    background: url('../images/webPageTop.png') no-repeat center center;
+}
+
+.icon-client,
+.icon-semantic {
+    background: url('../images/webPage.png') no-repeat center center;
+}
+
+.icon-bootstrap {
+    background: url('../images/bootstrapPage.png') no-repeat center center;
+}
+
+.icon-netflow-top
+ {
+    background: url('../images/flowTop.png') no-repeat center center;
+}
+
+.icon-netflow{
+    background: url('../images/flow.png') no-repeat center center;
+}
+.icon-processor-top,
+.icon-processor {
+    background: url('../images/proc.png') no-repeat center center;
+}
+
+.icon-report-top {
+    background: url('../images/reportTop.png') no-repeat center center;
+}
+
+.icon-report {
+    background: url('../images/report.png') no-repeat center center;
+}
+
+.icon-word-top,
+.icon-word {
+    background: url('../images/word.png') no-repeat center center;
+}
+
+.icon-excel-top,
+.icon-excel {
+    background: url('../images/excel.png') no-repeat center center;
+}
+
+.icon-trans-top,
+.icon-trans {
+    background: url('../images/trans.png') no-repeat center center;
+}
+
+.icon-bat-top,
+.icon-bat {
+    background: url('../images/bat.png') no-repeat center center;
+}
+
+.icon-itable-top,
+.icon-itable {
+    background: url('../images/itable.png') no-repeat center center;
+}
+
+.icon-chat-top,
+.icon-chat {
+    background: url('../images/chat.png') no-repeat center center;
+}
+
+.icon-wizard {
+    background: url('../images/wizard.png') no-repeat center center;
+}
+
+.icon-copy {
+    background: url('../images/copy.png') no-repeat center center;
+}
+
+.icon-rename {
+    background: url('../images/rename.png') no-repeat center center;
+}
+
+.icon-table-top {
+    background: url('../images/tabletop.png') no-repeat center center;
+}
+
+.icon-table {
+    background: url('../images/table.png') no-repeat center center;
+}
+
+.icon-coldef-top {
+    background: url('../images/ddtop.png') no-repeat center center;
+}
+
+.icon-coldef {
+    background: url('../images/dd.png') no-repeat center center;
+}
+
+.icon-column {
+    background: url('../images/field.png') no-repeat center center;
+}
+
+.icon-key {
+    background: url('../images/key.png') no-repeat center center;
+}
+
+.icon-run {
+    background: url('../images/run.png') no-repeat center center;
+}
+
+.icon-pause {
+    background: url('../images/pause.png') no-repeat center center;
+}
+
+
+.icon-mobile {
+    background: url('../images/mobile.png') no-repeat center center;
+}
+
+.icon-computer {
+    background: url('../images/computer.png') no-repeat center center;
+}
+
+.icon-importfile {
+    background: url('../images/importfile.png') no-repeat center center;
+}
+
+.icon-exportfile {
+    background: url('../images/exportfile.png') no-repeat center center;
+}
+
+.icon-storeprocedure {
+    background: url('../images/storeprocedure.png') no-repeat center center;
+}
+
+.icon-infocommand {
+    background: url('../images/infocommand.ico') no-repeat center center;
+}
+
+.icon-updatecomponent {
+    background: url('../images/updatecomponent.ico') no-repeat center center;
+}
+
+.icon-infodatasource {
+    background: url('../images/infodatasource.ico') no-repeat center center;
+}
+
+.icon-autonumber {
+    background: url('../images/autonumber.ico') no-repeat center center;
+}
+
+.icon-infotransaction {
+    background: url('../images/infotransaction.ico') no-repeat center center;
+}
+
+.icon-servermove {
+    background: url('../images/infotransaction.ico') no-repeat center center;
+}
+
+
+.icon-servicemanager {
+    background: url('../images/servicemanager.ico') no-repeat center center;
+}
+
+.icon-mail {
+    background:url('../images/mail.png') no-repeat center center;
+}
+
+.icon-parameter {
+    background:url('../images/parameter.png') no-repeat center center;
+}
+
+.icon-board {
+    background:url('../images/board.png') no-repeat center center;
+}
+
+.icon-settings {
+    background:url('../images/settings.png') no-repeat center center;
+}
+
+.icon-notice {
+    background:url('../images/notice.png') no-repeat center center;
+}
+
+.icon-default {
+    background: url('../images/default.png') no-repeat center center;
+}
+
+.icon-validate {
+    background: url('../images/validate.png') no-repeat center center;
+}
+
+.icon-autoseq {
+    background: url('../images/autoseq.png') no-repeat center center;
+}
+
+.icon-clientmove{
+    background: url('../images/clientmove.png') no-repeat center center;
+}
+.icon-drilldown {
+    background: url('../images/drillDown.png') no-repeat center center;
+}
+
+.icon-literal {
+    background: url('../images/literal.png') no-repeat center center;
+}
+
+.icon-datagrid {
+    background: url('../images/datagrid.png') no-repeat center center;
+}
+
+.icon-dataform {
+    background: url('../images/dataform.png') no-repeat center center;
+}
+
+.icon-carousel {
+    background: url('../images/image.png') no-repeat center center;
+}
+
+.icon-panel {
+    background: url('../images/panel.png') no-repeat center center;
+}
+
+.icon-tabs {
+    background: url('../images/tabs.png') no-repeat center center;
+}
+
+.icon-tree {
+    background: url('../images/tree.png') no-repeat center center;
+}
+
+.icon-label {
+    background: url('../images/label.png') no-repeat center center;
+}
+
+.icon-image {
+    background: url('../images/image.png') no-repeat center center;
+}
+
+.icon-imagelist {
+    background: url('../images/imagelist.png') no-repeat center center;
+}
+
+.icon-imagezoom {
+    background: url('../images/imagezoom.png') no-repeat center center;
+}
+
+.icon-carousel {
+    background: url('../images/carousel.png') no-repeat center center;
+}
+
+.icon-css {
+    background: url('../images/css.png') no-repeat center center;
+}
+
+.icon-schedule {
+    background: url('../images/calendar.png') no-repeat center center;
+}
+
+.icon-push {
+    background: url('../images/push.png') no-repeat center center;
+}
+
+.icon-line {
+    background: url('../images/line.png') no-repeat center center;
+}
+
+.icon-gantt {
+    background: url('../images/gantt.png') no-repeat center center;
+}
+.icon-pivottable {
+    background: url('../images/pivottable.png') no-repeat center center;
+}
+.icon-linechart {
+    background: url('../images/linechart.png') no-repeat center center;
+}
+
+.icon-barchart {
+    background: url('../images/barchart.png') no-repeat center center;
+}
+
+.icon-piechart {
+    background: url('../images/piechart.png') no-repeat center center;
+}
+
+.icon-donutchart {
+    background: url('../images/donutchart.png') no-repeat center center;
+}
+
+.icon-geochart {
+    background: url('../images/geochart.png') no-repeat center center;
+}
+
+.icon-svgchart {
+    background: url('../images/svgchart.png') no-repeat center center;
+}
+
+.icon-gauge {
+    background: url('../images/gauge.png') no-repeat center center;
+}
+
+.icon-delete {
+    background: url('../images/delete.png') no-repeat center center;
+}
+
+.icon-moveup {
+    background: url('../images/moveup.png') no-repeat center center;
+}
+
+.icon-movedown {
+    background: url('../images/movedown.png') no-repeat center center;
+}
+
+.icon-build {
+    background: url('../images/build.png') no-repeat center center;
+}
+
+.icon-format {
+    background: url('../images/format.png') no-repeat center center;
+}
+
+.icon-copy {
+    background: url('../images/copy.png') no-repeat center center;
+}
+
+.icon-paste {
+    background: url('../images/paste.png') no-repeat center center;
+}
+
+.icon-lock {
+    background: url('../images/lock.png') no-repeat center center;
+}
+
+.icon-unlock {
+    background: url('../images/unlock.png') no-repeat center center;
+}
+
+.icon-field {
+    background: url('../images/field.png') no-repeat center center;
+}
+
+.icon-unchecked {
+    background: url('../images/unchecked.png') no-repeat center center;
+}
+
+.icon-checked {
+    background: url('../images/checked.png') no-repeat center center;
+}
+
+.icon-function {
+    background: url('../images/function.png') no-repeat center center;
+}
+
+.icon-menus {
+    background: url('../images/menus.png') no-repeat center center;
+}
+
+.icon-siteMap {
+    background: url('../images/siteMap.png') no-repeat center center;
+}
+
+.icon-panels {
+    background: url('../images/panels.png') no-repeat center center;
+}
+
+.icon-layout {
+    background: url('../images/layout.png') no-repeat center center;
+}
+
+.icon-promptDialog {
+    background: url('../images/promptDialog.png') no-repeat center center;
+}
+
+.icon-shoppingCart {
+    background: url('../images/shoppingCart.png') no-repeat center center;
+}
+
+.icon-break {
+     background: url('../images/break.png') no-repeat center center;
+}
+
+.icon-return {
+    background: url('../images/flreturn.png') no-repeat center center;
+}
+
+.icon-disable{
+    background: url('../images/disable.png') no-repeat center center;
+}
+
+.icon-voice{
+    background: url('../images/voice.png') no-repeat center center;
+    background-size: 20px 20px;
+}
+
+.icon-voice.ing{
+    background: url('../images/voicing.png') no-repeat center center;
+    background-size: 20px 20px;
+}
+
+.icon-page {
+    background: url('../images/page.png') no-repeat center center;
+}
+
+.icon-ai {
+    background: url('../images/ai.png') no-repeat center center;
+}
+
+.icon-columngroup {
+    background: url('../images/columngroup.png') no-repeat center center;
+}
+
+.cloud-hidden,
+.cloud-readonly {
+    display: none;
+}
+
+/* design */
+tr.cloud-visible {
+    display: table-row;
+}
+
+td.cloud-visible {
+    display: table-cell;
+}
+
+div.cloud-visible {
+    display: block;
+}
+
+a.cloud-visible {
+    display: inline-block;
+}
+
+.tab-unsaved {
+    color: #F00;
+}
+
+.designer-property-name {
+    text-transform: capitalize;
+}
+
+.property-window textarea,
+.info-designer textarea,
+.info-spview textarea{
+    margin: 0;
+    padding: 0;
+    border: none;
+    width: 100%;
+    height: 100%;
+    resize: none;
+    overflow: auto;
+}
+
+.tabs-noborder .tabs {
+    border-width: 0;
+}
+
+.messager-body {
+    padding: 10px;
+}
+
+/* designer */
+.designer-item {
+    margin: 5px;
+    padding: 1px;
+    vertical-align: top;
+}
+
+.designer-component {
+    width: 140px;
+    border: #ffffcc 1pt outset;
+    background-color: #ECE9D8;
+}
+
+.designer-component span {
+    margin: 3px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+}
+
+.designer-component p {
+    color: #000;
+    margin: 5px;
+    font-size: 12px;
+    display: inline-block;
+    vertical-align: top;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.designer-selected {
+    border: 1px dotted black;
+}
+
+.designer-over {
+    border: 1px solid blue !important;
+}
+
+.editor-column-caption {
+    display: inline-block;
+    width: 130px
+}
+
+.editor-column-order {
+    display: inline-block;
+    padding-top: 10px;
+    margin-left: 400px;
+}
+
+.editor-column-container {
+    width: 840px;
+    position: relative;
+    margin: 5px 0;
+    border: 1px solid
+}
+
+.editor-column {
+    display: table;
+    padding: 0;
+    border: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 140px;
+}
+
+.editor-column .drag {
+    margin: 10px;
+    text-align: center;
+}
+
+.editor-text {
+    margin: 0 5px;
+}
+
+.editor-btn {
+    margin: 5px;
+    width: 80px;
+}
+
+.editor-btn-right {
+    float: right;
+    margin: 5px;
+    width: 80px;
+}
+
+.jPicker .Button input,
+.jPicker .Button hr {
+    display: none;
+}
+
+.jPicker .Button .Grid {
+    margin-top: 100px;
+}
+
+.color-preview {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    margin: 2px;
+    border: 1px solid #444
+}
+
+.color-preview+span{
+    vertical-align:top;
+}
+
+ .styled-background { background-color: #ff7; }
+
+.preview .CodeMirror-merge,
+.preview .CodeMirror-merge .CodeMirror {
+    height: 500px;
+ }
+
+/* shape */
+
+/*.shape-selected,
+.shape-mselected {
+    border: 1px solid blue;
+    border-radius: 5px
+}
+
+.line-drop-point,
+.shape-drop-point {
+    background: url('../images/drop.png') no-repeat center center;
+}
+
+.dropover {
+    background: url('../images/dropover.png') no-repeat center center;
+}*/
+
+/* flow */
+.info-flowDesigner svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+}
+
+.flow-activity {
+    width: 120px;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 5px;
+    border: 1px solid #000;
+    border-radius: 10px;
+    -moz-box-shadow: 3px 3px 6px #000; /* 老的 Firefox */
+    box-shadow: 3px 3px 6px #000;
+    text-align: center;
+    font-size: 14px;
+    z-index: 3;
+}
+
+.netflow .flow-activity,
+.processor .flow-activity,
+.line-editor .flow-activity{
+    font-size: 12px;
+}
+
+.activity-text{
+    margin-left: 16px;
+}
+
+.netflow .activity-text,
+.processor .activity-text,
+.line-editor .activity-text{
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+}
+
+.StartActivity,
+.EndActivity {
+    width: 80px;
+}
+
+.ParallelActivity {
+    width: 360px;
+    height: 75px;
+    border: 1px solid #a7a7a7;
+    border-radius: 0px;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    padding: 0px;
+}
+
+.IfElseActivity {
+    width: 360px;
+    height: 120px;
+    border: 1px dotted #a7a7a7;
+    border-radius: 0px;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    padding: 0px;
+}
+
+.ParallelBranchActivity,
+.IfElseBranchActivity,
+.LoopActivity  {
+    width: 160px;
+    height: 75px;
+    border: 1px solid #c7c7c7;
+    border-radius: 5px;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    padding: 0px;
+}
+
+.ParallelActivity > .activity-text,
+.IfElseActivity  > .activity-text
+{
+    width: 100%;
+    height: 20px;
+    color:transparent;
+    background-color: transparent;
+    position: absolute;
+    z-index: 4;
+}
+/*
+.IfElseActivity  > .activity-text{
+   position: absolute;
+   width: 140px;
+   height: 40px;
+   line-height: 40px;
+   z-index: 4;
+}*/
+
+.ParallelBranchActivity > .activity-text,
+.IfElseBranchActivity > .activity-text
+{
+    width: 100%;
+   /* height: 20px;*/
+    background-color: transparent;
+    z-index: 4;
+}
+
+.LoopActivity > .activity-text
+{
+    width: 100%;
+    height: 20px;
+    background-color: transparent;
+    z-index: 4;
+}
+
+
+.ParallelBranchActivity > .flow-activity,
+.IfElseBranchActivity > .flow-activity,
+.LoopActivity > .flow-activity {
+    margin: auto 0 auto 15px;
+    display: inline-block;
+}
+
+.ParallelBranchActivity.vertical > .flow-activity,
+.IfElseBranchActivity.vertical > .flow-activity,
+.LoopActivity.vertical > .flow-activity {
+    margin: 0px auto;
+    display: block;
+}
+
+.ParallelBranchActivity > .flow-activity + .flow-activity,
+.IfElseBranchActivity > .flow-activity + .flow-activity,
+.LoopActivity > .flow-activity + .flow-activity {
+    margin-top: 15px;
+}
+
+.ParallelBranchActivity > .flow-activity + .flow-activity >.arrow-div, 
+.IfElseBranchActivity > .flow-activity + .flow-activity >.arrow-div,
+.LoopActivity > .flow-activity + .flow-activity >.arrow-div {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    left: -15px;
+    top: 50%;
+    margin-top: -8px;
+    background: url('../images/arrow2.png') no-repeat center center;
+}
+
+.ParallelBranchActivity.vertical  > .flow-activity + .flow-activity >.arrow-div,
+.IfElseBranchActivity.vertical  > .flow-activity + .flow-activity >.arrow-div,
+.LoopActivity.vertical  > .flow-activity + .flow-activity >.arrow-div {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    left: 50%;
+    top: -8px;
+    margin-left: -8px;
+    background: url('../images/arrow.png') no-repeat center center;
+}
+
+.tool-activity {
+    width: 130px;
+    height: 40px;
+    margin: 8px;
+    padding: 5px;
+    -moz-box-shadow: none;
+    text-align: left;
+    box-shadow: none;
+}
+
+.netflow .tool-activity,
+.processor .tool-activity  {
+    width: 120px;
+    height: 25px;
+}
+
+.tool-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-top: 5px;
+}
+
+.netflow .tool-icon,
+.processor .tool-icon{
+    margin-top: 1px;
+}
+
+.tool-text {
+    vertical-align: top;
+    margin-left: 20px;
+}
+
+.activity-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    margin-top: -8px;
+}
+
+.ParallelActivity > .activity-icon,
+.ParallelBranchActivity > .activity-icon,
+.IfElseActivity > .activity-icon,
+.IfElseBranchActivity > .activity-icon,
+.LoopActivity > .activity-icon {
+    top: 2px;
+    margin-top: 0;
+}
+
+.StartActivity >.activity-icon {
+    background: url('../images/flstart.png') no-repeat center center;
+}
+
+.EndActivity > .activity-icon {
+    background: url('../images/flend.png') no-repeat center center;
+}
+
+.StandActivity > .tool-icon,
+.StandActivity >.activity-icon {
+    background: url('../images/flstand.png') no-repeat center center;
+}
+
+.ApproveActivity > .tool-icon,
+.ApproveActivity > .activity-icon {
+    background: url('../images/flapprove.png') no-repeat center center;
+}
+
+.MultiApproveActivity > .tool-icon,
+.MultiApproveActivity > .activity-icon {
+    background: url('../images/fldetail.png') no-repeat center center;
+}
+
+.SeqApproveActivity > .tool-icon,
+.SeqApproveActivity > .activity-icon {
+    background: url('../images/flseq.png') no-repeat center center;
+}
+
+
+.NotifyActivity > .tool-icon,
+.NotifyActivity > .activity-icon {
+    background: url('../images/flnotify.png') no-repeat center center;
+}
+
+.ValidateActivity > .tool-icon,
+.ValidateActivity > .activity-icon {
+    background: url('../images/flvalidate.png') no-repeat center center;
+}
+
+.ProcedureActivity > .tool-icon,
+.ProcedureActivity > .activity-icon {
+    background: url('../images/flprocedure.png') no-repeat center center;
+}
+
+.BatchMoveActivity > .tool-icon,
+.BatchMoveActivity > .activity-icon {
+    background: url('../images/infotransaction.ico') no-repeat center center;
+}
+
+.SapSubmitActivity > .tool-icon,
+.SapSubmitActivity > .activity-icon {
+    background: url('../images/flprocedure.png') no-repeat center center;
+}
+
+.RecMailActivity > .tool-icon,
+.RecMailActivity > .activity-icon {
+    background: url('../images/mail.png') no-repeat center center;
+}
+
+.WebServiceActivity > .tool-icon,
+.WebServiceActivity > .activity-icon {
+    background: url('../images/servicemanager.ico') no-repeat center center;
+}
+
+.WebParserActivity > .tool-icon,
+.WebParserActivity > .activity-icon {
+    background: url('../images/servicemanager.ico') no-repeat center center;
+}
+
+.StartFlowActivity > .tool-icon,
+.StartFlowActivity > .activity-icon {
+    background: url('../images/flow.png') no-repeat center center;
+}
+
+.SendMessageActivity > .tool-icon,
+.SendMessageActivity > .activity-icon {
+    background: url('../images/mail.png') no-repeat center center;
+}
+
+
+.ReturnActivity > .tool-icon,
+.ReturnActivity > .activity-icon,
+.BreakActivity > .tool-icon,
+.BreakActivity > .activity-icon {
+    background: url('../images/flreturn.png') no-repeat center center;
+}
+
+.RejectActivity > .tool-icon,
+.RejectActivity > .activity-icon {
+    background: url('../images/flreject.png') no-repeat center center;
+}
+
+.ParallelActivity > .tool-icon,
+.ParallelActivity > .activity-icon {
+    background: url('../images/flparallel.png') no-repeat center center;
+}
+
+.SequenceActivity > .tool-icon,
+.ParallelBranchActivity > .activity-icon {
+    background: url('../images/parallelbranch.png') no-repeat center center;
+}
+
+.IfElseActivity > .tool-icon ,
+.IfElseActivity > .activity-icon {
+    background: url('../images/flifelse.png') no-repeat center center;
+}
+
+.IfElseBranchActivity > .tool-icon,
+.IfElseBranchActivity > .activity-icon {
+    background: url('../images/ifelsebranch.png') no-repeat center center;
+}
+
+.SubFlowActivity > .tool-icon,
+.SubFlowActivity > .activity-icon,
+.SubProcessorActivity > .tool-icon,
+.SubProcessorActivity > .activity-icon {
+    background: url('../images/flow.png') no-repeat center center;
+}
+
+
+.LoopActivity > .tool-icon,
+.LoopActivity > .activity-icon {
+    background: url('../images/refresh.png') no-repeat center center;
+}
+
+.AssignActivity > .tool-icon,
+.AssignActivity > .activity-icon {
+    background: url('../images/flprocedure.png') no-repeat center center;
+}
+
+.SqlSelectActivity > .tool-icon,
+.SqlSelectActivity > .activity-icon {
+    background: url('../images/table.png') no-repeat center center;
+}
+
+.SapQueryActivity > .tool-icon,
+.SapQueryActivity > .activity-icon {
+    background: url('../images/table.png') no-repeat center center;
+}
+
+.SqlProcessActivity > .tool-icon,
+.SqlProcessActivity > .activity-icon,
+.SqlImportActivity > .tool-icon,
+.SqlImportActivity > .activity-icon {
+    background: url('../images/storeprocedure.png') no-repeat center center;
+}
+
+.LogActivity > .tool-icon,
+.LogActivity > .activity-icon {
+    background: url('../images/log.png') no-repeat center center;
+}
+
+.WordOutputActivity > .tool-icon,
+.WordOutputActivity > .activity-icon {
+    background: url('../images/word.png') no-repeat center center;
+}
+
+.ExcelOutputActivity > .tool-icon,
+.ExcelOutputActivity > .activity-icon {
+    background: url('../images/excel.png') no-repeat center center;
+}
+
+.FileOutputActivity > .tool-icon,
+.FileOutputActivity > .activity-icon,
+.FilePrintActivity > .tool-icon,
+.FilePrintActivity > .activity-icon {
+    background: url('../images/print.png') no-repeat center center;
+}
+
+.FileInputActivity > .tool-icon,
+.FileInputActivity > .activity-icon {
+    background: url('../images/importfile.png') no-repeat center center;
+}
+
+.FTPActivity > .tool-icon,
+.FTPActivity > .activity-icon {
+    background: url('../images/flprocedure.png') no-repeat center center;
+}
+
+.ChatBotActivity > .tool-icon,
+.ChatBotActivity > .activity-icon {
+    background: url('../images/chat.png') no-repeat center center;
+}
+
+
+.flow-activity.break >.activity-icon {
+    background: url('../images/break.png') no-repeat center center;
+}
+
+.flow-activity.inactive {
+    opacity: 0.3;
+}
+
+
+.flow-segment,
+.segment-body {
+    box-sizing: border-box;
+    border: 1px solid #7f7f7f;
+    border-left: none;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    z-index: 0;
+}
+
+.flow-segment {
+    z-index: 5;
+}
+
+.first-segment {
+    border-left: 1px solid #7f7f7f;
+}
+
+.preview-div {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 2px;
+    top: 50%;
+    margin-top: -8px;
+}
+
+.flow-selected {
+    border: 1px dashed #F00;
+}
+
+.debug-current {
+    border: 3px solid #F00;
+}
+
+.flow-segment.resizing {
+    border: 1px solid #7f7f7f;
+    z-index: 10;
+}
+
+.line-point {
+    background-image: url(../images/drop.svg);
+    background-repeat: no-repeat;
+    background-position:center;
+    background-size: 24px 24px;
+    z-index: 3;
+}
+
+.line-point.dropover {
+    background-image: url(../images/dropover.svg);
+}
+
+.ParallelActivity.dropover,
+.ParallelBranchActivity.dropover,
+.IfElseActivity.dropover,
+.IfElseBranchActivity.dropover,
+.LoopActivity.dropover   {
+    border: 1px solid #FF6347;
+}
+
+.flow-line-editor{
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.flow-line-editor .line-drop{
+    box-sizing: border-box;
+    border: 1px #ccc solid;
+}
+
+.flow-line-editor .line-drop.dropover{
+    border: 1px #FF6347 solid ;
+}
+
+.flow-line-editor .line{
+    height: 100%;
+    background-size: 100%;
+    background-image: url(../images/line.svg);
+}
+
+.flow-line-editor .left .line.from,
+.flow-line-editor .right .line.to
+{
+    transform:rotate(90deg);
+    -ms-transform:rotate(90deg);     /* IE 9 */
+    -moz-transform:rotate(90deg);    /* Firefox */
+    -webkit-transform:rotate(90deg); /* Safari 和 Chrome */
+    -o-transform:rotate(90deg);  /* Opera */
+}
+
+.flow-line-editor .top .line.from,
+.flow-line-editor .bottom .line.to{
+    transform:rotate(180deg);
+    -ms-transform:rotate(180deg);     /* IE 9 */
+    -moz-transform:rotate(180deg);    /* Firefox */
+    -webkit-transform:rotate(180deg); /* Safari 和 Chrome */
+    -o-transform:rotate(180deg);  /* Opera */
+}
+
+.flow-line-editor .right .line.from,
+.flow-line-editor .left .line.to,
+.flow-line-editor .auto .line.from,
+.flow-line-editor .auto .line.to
+ {
+    transform:rotate(270deg);
+    -ms-transform:rotate(270deg);     /* IE 9 */
+    -moz-transform:rotate(270deg);    /* Firefox */
+    -webkit-transform:rotate(270deg); /* Safari 和 Chrome */
+    -o-transform:rotate(270deg);  /* Opera */
+}
+
+.flow-line-editor .line{
+     display: inline-block;
+    box-sizing: border-box;
+}
+
+.flow-line-editor .line.from{
+    border-top: 1px solid #333
+}
+
+.flow-line-editor .line.to{
+    border-bottom: 1px solid #333
+}
+
+.flow-line-editor .auto .line{
+    margin: 0 8px;
+}
+/*preview css*/
+
+.flow-activity.preview{
+    padding: 0 5px;
+    font-size: 12px;
+}
+
+.preview .activity-icon{
+    top: 0px;
+    margin-top: 0px;
+}
+
+.flow-history{
+    padding-left: 16px;
+    background: url('../images/flow_history.png') no-repeat 0 0;
+}
+
+.flow-waiting{
+    padding-left: 16px;
+    background: url('../images/flow_waiting.png') no-repeat  0 0;
+    color: red;
+}
+
+.flow-next{
+    padding-left: 16px;
+    background: url('../images/flow_next.png') no-repeat  0 0;
+}
+
+.exp-table tbody tr:nth-child(1) td.andOr span{
+    display: none;
+}
+
+/* report */
+.report-item {
+    margin: 0;
+    vertical-align: top;
+}
+
+.report-field {
+
+    /*height: 30px;*/
+    box-sizing: border-box;
+    border: #bbbbbb 1pt solid;
+    background-color: #ffffff;
+}
+
+.report-field p {
+    color: #000;
+    margin: 5px;
+    font-size: 12px;
+    vertical-align: top;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.report-table {
+    border-collapse: collapse;
+}
+
+.report-table th {
+    background-color: #eeeeee;
+}
+
+.report-table tr.group.header {
+    background-color: #eeffff;
+}
+
+.report-table tr.group.footer {
+    background-color: #d3ffff;
+}
+
+.report-table tfoot td {
+    background-color: #eeeeee;
+}
+
+.report-table .drag-over {
+    background-color: #FBEC88;
+}
+
+.report-table td,
+.report-table th {
+    padding: 0;
+    box-sizing: border-box;
+    min-width: 90px;
+    height: 30px;
+    border: #bbbbbb 1pt solid;
+}
+
+.item-drag {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    top: -10px;
+    left: -10px;
+    background: url('../images/datatable.png') no-repeat center center;
+}
+   
+/* itable */
+
+.info-iTableDesigner .designer-item{
+   /* width: fit-content; */
+   margin: 10px;
+   position: relative;
+}
+
+.itable-toolitem {
+    width: 105px;
+    height: 35px;
+    display: inline-block;
+    box-sizing: border-box;
+    margin: 10px 5px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: rgb(228, 255, 255);
+    font-size: 14px;
+}
+
+.itable-button-div {
+    padding: 5px;
+    float: right;
+}
+
+.itable-toolitem .tool-text{
+    margin-left: 10px;
+}
+
+.itable-table {
+    border-collapse: collapse;
+}
+
+.itable-table td,
+.itable-table th {
+    padding: 0;
+    box-sizing: border-box;
+    min-width: 120px;
+    height: 25px;
+    border: #bbbbbb 1pt solid;
+}
+
+.itable-table th {
+    background-color: #eeeeee;
+}
+
+
+.itable-table .drag-over {
+    background-color: #FBEC88;
+}
+
+.designer-item .item-drag {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    top: -10px;
+    left: -10px;
+    background: url('../images/datatable.png') no-repeat center center;
+}
+
+.info-iTableField {
+    box-sizing: border-box;
+/*    border: #bbbbbb 1pt solid;*/
+    background-color: #ffffff;
+}
+
+.info-iTableField .field-icon {
+    margin: 3px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+}
+
+.info-iTableField .field-text {
+    color: #000;
+    margin: 1px;
+    font-size: 12px;
+    display: inline-block;
+    vertical-align: top;
+    width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 20px;
+}
+
+.info-iTableField.designer-selected {
+    border: 1px dotted blue;
+    background-color: #ffffaa;
+}
+
+
+.info-iTableGrid .item-drag{
+    background: url('../images/datagrid.png') no-repeat center center;
+    background-size: 20px 20px;
+}
+
+.info-iTableForm .item-drag{
+    background: url('../images/dataform.png') no-repeat center center;
+     background-size: 20px 20px;
+}
+
+.designer-item .item-addColumn {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    top: -5px;
+    right: 10px;
+    background: url('../images/drop.svg') no-repeat center center;
+    background-size: 15px 15px;
+}
+
+.designer-item .item-removeColumn {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    top: -5px;
+    right: -5px;
+    background: url('../images/minus.svg') no-repeat center center;
+    background-size: 15px 15px;
+}
+
+.designer-item .item-addRow {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    bottom: 10px;
+    left: -5px;
+    background: url('../images/drop.svg') no-repeat center center;
+    background-size: 15px 15px;
+}
+
+.designer-item .item-removeRow {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    bottom: -5px;
+    left: -5px;
+    background: url('../images/minus.svg') no-repeat center center;
+    background-size: 15px 15px;
+}
+
+.icon-editor-AutoComplete {
+    background: url('../images/editor/AutoComplete.png') no-repeat center center;
+}
+
+.icon-editor-BarCode {
+    background: url('../images/editor/BarCode.png') no-repeat center center;
+}
+
+.icon-editor-CheckBox {
+    background: url('../images/editor/CheckBox.png') no-repeat center center;
+}
+
+.icon-editor-Combo {
+    background: url('../images/editor/Combo.png') no-repeat center center;
+}
+
+.icon-editor-Creator {
+    background: url('../images/editor/Creator.png') no-repeat center center;
+}
+
+.icon-editor-Date {
+    background: url('../images/editor/Date.png') no-repeat center center;
+}
+
+.icon-editor-DateC8 {
+    background: url('../images/editor/DateC8.png') no-repeat center center;
+}
+
+.icon-editor-DateSelect {
+    background: url('../images/editor/DateSelect.png') no-repeat center center;
+}
+
+.icon-editor-DateTime {
+    background: url('../images/editor/DateTime.png') no-repeat center center;
+}
+
+.icon-editor-FileUpload {
+    background: url('../images/editor/FileUpload.png') no-repeat center center;
+}
+
+.icon-editor-Html {
+    background: url('../images/editor/Html.png') no-repeat center center;
+}
+
+.icon-editor-Json {
+    background: url('../images/editor/Json.png') no-repeat center center;
+}
+
+.icon-editor-Key {
+    background: url('../images/editor/Key.png') no-repeat center center;
+}
+
+.icon-editor-KeyAuto {
+    background: url('../images/editor/KeyAuto.png') no-repeat center center;
+}
+
+.icon-editor-KeyCombo {
+    background: url('../images/editor/KeyCombo.png') no-repeat center center;
+}
+
+.icon-editor-KeyName {
+    background: url('../images/editor/KeyName.png') no-repeat center center;
+}
+
+.icon-editor-KeyRefval {
+    background: url('../images/editor/KeyRefval.png') no-repeat center center;
+}
+
+.icon-editor-MultiInput {
+    background: url('../images/editor/MultiInput.png') no-repeat center center;
+}
+
+.icon-editor-Number {
+    background: url('../images/editor/Number.png') no-repeat center center;
+}
+
+.icon-editor-Option {
+    background: url('../images/editor/Option.png') no-repeat center center;
+}
+
+.icon-editor-Picture {
+    background: url('../images/editor/Picture.png') no-repeat center center;
+}
+.icon-editor-QRCode {
+    background: url('../images/editor/QRCode.png') no-repeat center center;
+}
+
+.icon-editor-RefName {
+    background: url('../images/editor/RefName.png') no-repeat center center;
+}
+
+.icon-editor-RefVal {
+    background: url('../images/editor/Refval.png') no-repeat center center;
+}
+
+.icon-editor-Scan {
+    background: url('../images/editor/Scan.png') no-repeat center center;
+}
+
+.icon-editor-Signature {
+    background: url('../images/editor/Signature.png') no-repeat center center;
+}
+
+.icon-editor-Switch {
+    background: url('../images/editor/Switch.png') no-repeat center center;
+}
+
+.icon-editor-Text {
+    background: url('../images/editor/Text.png') no-repeat center center;
+}
+
+.icon-editor-TextArea {
+    background: url('../images/editor/TextArea.png') no-repeat center center;
+}
+
+.icon-editor-TimeBox {
+    background: url('../images/editor/TimeBox.png') no-repeat center center;
+}
+
+.icon-editor-Updater {
+    background: url('../images/editor/Updater.png') no-repeat center center;
+}
+
+.template-icon {
+    margin: 3px;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+}
+
+.template-text {
+    margin: 3px;
+    display: inline-block;
+    height: 32px;
+    line-height: 32px;
+    vertical-align: top;
+}
+
+.icon-template-1Grid {
+    background: url('../images/template/1Grid.png') no-repeat center center;
+}
+
+.icon-template-2GridForm {
+    background: url('../images/template/2GridForm.png') no-repeat center center;
+}
+
+.icon-template-3Form {
+    background: url('../images/template/3Form.png') no-repeat center center;
+}
+
+.icon-template-4MDGridForm {
+    background: url('../images/template/4MDGridForm.png') no-repeat center center;
+}
+
+.icon-template-5MDForm {
+    background: url('../images/template/5MDForm.png') no-repeat center center;
+}
+
+.icon-template-6MDGridForm2 {
+    background: url('../images/template/6MDGridForm2.png') no-repeat center center;
+}
+
+.icon-template-7MDForm2 {
+    background: url('../images/template/7MDForm2.png') no-repeat center center;
+}
+
+.icon-template-8MD3GridForm {
+    background: url('../images/template/8MD3GridForm.png') no-repeat center center;
+}
+
+.icon-template-9MD3GridForm {
+    background: url('../images/template/9MD3GridForm.png') no-repeat center center;
+}
+
+.table-columns-1 .item-removeColumn{
+    display: none;
+}
+
+.table-columns-1 .item-addColumn{
+    right: -5px;
+}
+
+.info-iTableForm.table-columns-4 .item-addColumn{
+    display: none;
+}
+
+.table-rows-1 .item-removeRow{
+    display: none;
+}
+
+.table-rows-1 .item-addRow{
+    bottom: -5px;
+}
+
+/*chat*/
+.chat-icon{
+    width: 40px;
+    height:40px;
+    margin:10px;
+    display:inline-block;
+}
+
+.ai .chat-icon,
+.error .chat-icon,
+.deleted .chat-icon {    
+    background: url('../images/ai.jpg') no-repeat center center;
+    background-size: 40px 40px;
+}
+
+.user .chat-icon,
+.example .chat-icon{
+    background: url('../images/user.jpg') no-repeat center center;
+    background-size: 40px 40px;
+}
+
+.chat-message{
+    max-width: 70%;
+    font-size: 14px;
+    margin:10px 0;
+    display:inline-block;
+    border:1px solid #999;
+    vertical-align: top;
+    border-radius: 10px;
+    padding: 10px;
+    position: relative;
+}
+
+.chat-image {
+    font-size: 14px;
+    margin:10px 5px;
+    background-color: rgb(228, 255, 255);
+    border:1px solid #999;
+    vertical-align: top;
+    border-radius: 0 0 5px 5px;
+    padding: 1px;
+    position: relative;
+    display: inline-block;
+}
+
+.chat-image img{
+    width: 140px;
+    height: 80px;
+}
+
+.chat-image .image-text{
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.chat-image .image-delete{
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    background: url('../images/delete.png') no-repeat center center;
+}
+
+    .chat-image .image-view {
+        position: absolute;
+        bottom: 20px;
+        right: 5px;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        background-size:cover;
+    }
+
+.chat-image-add {
+    width: 140px;
+    height: 100px;
+    background: url('../images/drop.svg') no-repeat center center;
+    background-size: 35px 35px;
+    margin:10px 5px;
+    border:1px solid #999;
+    border-radius: 0 0 5px 5px;
+    position: relative;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.chat-time-div{
+    position: relative;
+    height: 20px;
+}
+
+.chat-time{
+    font-size: 10px;
+    position: absolute;
+    top: 2px;
+    right: 5px;
+    padding: 2px 5px;
+    border-radius: 5px;
+    background-color:rgb(224, 224, 224);
+}
+
+.chat-export{
+    float:right;
+    margin-left:10px;
+}
+
+.chat-delete{
+    display: none;
+    margin: 12px 0;
+    vertical-align: top;
+    width: 16px;
+    height: 16px;
+    background: url('../images/delete.png') no-repeat center center;
+}
+
+.chat-copy{
+    display: none;
+    margin: 12px -15px;
+    width: 16px;
+    height: 16px;
+    background: url('../images/copy.png') no-repeat center center;
+}
+
+.chat-copy-confirm{
+    display: none;
+    margin: 12px 5px;
+    padding: 1px;
+    border: 1px solid #000;
+    border-radius: 3px;
+    color: #000;
+    background-color: #fff;
+}
+
+.chat-panel {
+    position: relative;
+}
+
+.chat-top{
+    position: absolute;
+    top:10px;
+    right: 20px;
+    width: 20px;
+    height: 20px;
+    border: 1px solid #a7a7a7;
+    background: url('../images/moveup.png') no-repeat center center;
+    cursor: pointer;
+}
+
+.chat-bottom{
+    position: absolute;
+    top:35px;
+    right: 20px;
+    width: 20px;
+    height: 20px;
+    border: 1px solid #a7a7a7;
+    background: url('../images/movedown.png') no-repeat center center;
+    cursor: pointer;
+}
+
+.chat-panel .chat-delete{
+    display: inline-block;
+}
+
+.chat-panel .chat-copy{
+    display: inline-block;
+}
+
+.clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
+.user div{
+  /*  float: right;*/
+}
+
+.user .chat-message{
+    background-color: rgb(228, 255, 255);
+}
+
+.deleted .chat-message{
+    color: #888;
+}
+
+.error .chat-message{
+   color: rgb(255, 0, 0);
+}
+
+.example .chat-message {
+    color: #a7a7a7;
+}
+
+.processing .chat-message{
+    width: 80px;
+    color: #777;
+}
+
+.info-chatTable {
+    margin: 20px 0 20px 80px;
+    position: relative;
+}
+
+.info-chatTable > .text {
+    font-size: 12px;
+    font-weight: bolder;
+    position: absolute;
+    width: 80px;
+    text-align: center;
+    left: -80px;
+}
+
+.info-chatTable > .text.first {
+    top: 0px;
+}
+
+.info-chatTable > .text.detail {
+    top: 40%;
+}
+
+.info-chatTable > .text.last {
+    bottom: 0px;
+}
+
+.info-chatField {
+    /*height: 30px;*/
+    box-sizing: border-box;
+    border: #bbbbbb 1pt solid;
+    background-color: #ffffff;
+}
+
+.info-chatField .field-icon {
+    margin: 6px 3px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+}
+
+.info-chatField .field-text {
+    color: #000;
+    margin: 1px;
+    font-size: 12px;
+    display: inline-block;
+    vertical-align: top;
+    width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height:25px;
+    height: 25px;
+}
+
+.info-chatField.designer-selected {
+    border: 1px dotted blue;
+    background-color: #ffffaa;
+}

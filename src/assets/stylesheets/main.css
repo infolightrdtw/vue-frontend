@@ -1,0 +1,249 @@
+body{
+	margin: 0;
+	font-family: "Arial","Microsoft YaHei","黑体","宋体",sans-serif !important;
+    color: #555;
+}
+
+.combobox-item{
+	padding: 6px 10px;
+}
+
+#layoutMain .panel-body {
+	color: #333;
+	border-color: #CBCBCB;
+}
+
+#layoutMain .layout-panel>.layout-body{
+	border: none;
+}
+
+#layoutMain .layout-panel-north>.layout-body{
+	height: 35px !important;
+	background-color: #333;
+	overflow: hidden;
+}
+
+#layoutMain .layout-panel-north .theme{
+	display: none;
+}
+
+#layoutMain .btn-system {
+	padding: 6px 12px;
+	font: 500 16px "Microsoft YaHei";
+	color: #f2f2f2 !important;
+}
+
+#layoutMain .btn-system:hover {
+	color: #f2f2f2 !important;
+	background: #555 !important;
+	border-color: #ccc !important;
+}
+
+#layoutMain .layout-panel-north .l-btn-text{
+	font: 500 16px "Microsoft YaHei";
+}
+
+#layoutMain .layout-panel-north .combo{
+	width:145px!important;
+	height: 30px!important;
+}
+
+#layoutMain .layout-panel-north span.textbox{
+	border: 1px solid #E6E6E6;
+	webkit-border-radius:0;
+	border-radius:0;
+}
+
+#layoutMain .layout-panel-north .textbox  .textbox-text{
+	font: normal 14px "Microsoft YaHei";
+	background-color: #F9F9F9;
+	width: 100% !important;
+    height: 24px;
+}
+
+.theme-tool-block{
+
+}
+
+#layoutMain .layout-panel-north .combo-arrow{
+	padding: 0 5px;
+	height: 30px!important;
+	background:  #FFFFFF url(../js/easyui/themes/gray/images/combo_arrow.png) no-repeat center center;
+}
+
+#layoutMain .layout-panel-north .combo-arrow: hover{
+	background-color: #FFFFFF;
+}
+
+#layoutMain .layout-panel-west>.layout-body{
+	background-color: #f2f2f2;
+}
+
+#layoutMain .layout-expand{
+	background-color: #E8E8E8;
+}
+
+#layoutMain .layout-button-left:before {
+    background: url(../js/easyui/themes/gray/images/layout_arrows.png) no-repeat 0 0;
+}
+
+#layoutMain .layout-button-right{
+    background: url(../js/easyui/themes/gray/images/layout_arrows.png) no-repeat 0 -16px;
+}
+
+#layoutMain .panel-header{
+	height:27px;
+	padding-top: 10px;
+	padding-left: 10px;
+	background: #777;
+	border: 0;
+}
+
+#layoutMain .panel-header>.panel-title{
+	color: #FFFFFF;
+	font: 500 16px "Microsoft YaHei";
+}
+
+#layoutMain .layout-split-west {
+  border-right: 5px solid #bbb;
+}
+
+#layoutMain .tabs-header{
+	padding-top: 0;
+}
+
+#layoutMain .tabs-title{
+	padding-top: 5px;
+	font: 500 16px "Microsoft YaHei";
+}
+
+#layoutMain .tabs-header,
+#layoutMain .tabs,
+#layoutMain .tabs-panels{
+	border: none;
+}
+
+
+#layoutMain .easyui-tabs .tabs{
+	padding: 5px 10px;
+	height: 34px !important;
+}
+
+#layoutMain .easyui-tabs li a.tabs-inner{
+	height: 29px !important;
+	min-width: 85px;
+	border: none;
+	border-radius:0;
+	padding-top: 5px;
+	background: #fff;
+	color: #666;
+	border-radius: 4px;
+}
+
+#tabMain>.tabs-header{
+	background-color: #6ca3d8;
+}
+#tabMain .tabs-inner{
+	color: #FFFFFF;
+}
+
+#tabMain li a.tabs-inner:hover {
+  background: #397ec1;
+  color: #fff;
+}
+
+#layoutMain .tabs li a:hover.tabs-close {
+  background-color: #FFF;
+}
+
+
+#tabMain li.tabs-selected a.tabs-inner{
+	padding-top: 5px;
+	background: #0d65bb;
+	color: #fff;
+	border-radius: 4px;
+}
+
+#tabFlow>.tabs-header{
+	background: #E8E8E8;
+}
+
+#tabFlow .tabs-inner{
+	color: #0E2D5F;
+}
+
+
+#layoutMain .tabs li a.tabs-close {
+  background: url('../js/easyui/themes/gray/images/tabs_icons.png') no-repeat -34px center;
+}
+#layoutMain .tabs-with-icon{
+	padding-left: 0;
+}
+
+#layoutMain .tree-icon, .tabs-icon{
+	/*display: none;*/
+}
+
+#layoutMain .tree-node-hover {
+  background: #c9dff5;
+  color: #000000;
+}
+
+#layoutMain .tree-node-selected {
+  background: #6ca3d8;
+  color: #fff;
+}
+
+#layoutMain .tree-collapsed, #layoutMain .tree-expanded{
+	height: 100%;
+	width: 20px;
+}
+
+#layoutMain .tree-collapsed, #layoutMain .tree-collapsed-over{
+	 background: url('../images/tree_collapsed.png') no-repeat 0 5px;;
+}
+
+#layoutMain .tree-expanded,#layoutMain .tree-expanded-over{
+	background: url('../images/tree_expanded.png') no-repeat 0 5px;
+}
+
+#layoutMain .easyui-tree>li{
+	border-bottom: 1px solid #b9b9b9;
+}
+
+#layoutMain .easyui-tree>li>.tree-node{
+	height: 30px;
+    padding-top: 6px;
+    padding-left: 10px;
+    background: #ccc;
+}
+#layoutMain .easyui-tree>li>.tree-node.tree-node-selected{
+	background: #ccc;
+}
+
+#layoutMain .easyui-tree>li>.tree-node:hover{
+	color: #eee;
+    background: #999;
+}
+
+#layoutMain .easyui-tree>li>.tree-node>.tree-title{
+	font: 500 16px "Microsoft YaHei";
+}
+
+#layoutMain .easyui-tree>li>ul .tree-node{
+	padding: 7px;
+}
+
+#layoutMain .easyui-tree>li>ul .tree-title{
+	font: normal 14px "Microsoft YaHei";
+}
+
+#app {
+  padding: 0 !important;
+  margin: 0 auto;   /* 保留水平置中就好 */
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
