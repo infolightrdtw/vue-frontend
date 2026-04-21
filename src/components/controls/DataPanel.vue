@@ -11,15 +11,18 @@
 </template>
 <script setup lang="ts">
     import { ref, computed, reactive } from 'vue'
-    let { columns = [], horizontalColumnsCount = 2, title = '', row, readonly = false } = defineProps<{
+    let { columns = [], panelColumns=[], horizontalColumnsCount = 2, title = '', row, readonly = false } = defineProps<{
         root: object,
         remoteName?: string,
         row: object,
         readonly: boolean,
         columns: Array,
+        panelColumns: Array
         horizontalColumnsCount: number,
         title?: string
     }>()
+
+    panelColumns.push(...columns)
 
     const isShow = ref(true)
     const iconCls = computed(() => ['glyphicon panel-toggle', isShow.value ? 'glyphicon-minus' : 'glyphicon-plus'])

@@ -176,6 +176,7 @@
                     }
                     else {
                         result = await submitFlow(param)
+                        result = result.message
                     }
                 }
                 else if (flowMethod.value == 'approve') {

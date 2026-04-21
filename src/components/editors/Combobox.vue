@@ -2,7 +2,7 @@
   <select
     class="form-control bootstrap-combobox"
     :multiple="multiple"
-    :disabled="readonly"
+    :disabled="disabled || readonly"
     v-model="proxyValue"
   >
     <option v-if="allowEmpty && !multiple" :value="''"></option>
@@ -20,6 +20,7 @@
 import { ref, watch, computed, onMounted, getCurrentInstance } from 'vue'
 import dataUtils from '@/utils/dataApi'
 import { resolveFieldFromDom } from '@/composables/useFieldFromDom'
+import { validate as runValidate, type ValidatorRuleMap } from '@/composables/useValidator'
 
 defineOptions({ name: 'ComboboxEditor' })
 
@@ -37,6 +38,9 @@ interface Props {
   modelValue?: string | number | unknown[] | Record<string, unknown> | null
   multiple?: boolean
   readonly?: boolean
+  // Declared explicitly so DataForm's `disabled: false` fall-through can't
+  // override our `:disabled="disabled || readonly"` binding on the select.
+  disabled?: boolean
   allowEmpty?: boolean
   itemsSource?: ItemRow[]
   items?: ItemRow[] | null
@@ -50,6 +54,8 @@ interface Props {
   fromSysParameters?: boolean
   field?: string
   required?: boolean
+  validType?: string
+  customRules?: ValidatorRuleMap
   onBeforeLoad?: ((param: { whereItems: WhereItem[] }) => void) | null
   onLoaded?: ((items: ItemRow[]) => void) | null
   onSelect?: ((value: unknown) => void) | null
@@ -60,6 +66,7 @@ const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
   multiple: false,
   readonly: false,
+  disabled: false,
   allowEmpty: false,
   itemsSource: () => [],
   items: null,
@@ -73,6 +80,8 @@ const props = withDefaults(defineProps<Props>(), {
   fromSysParameters: false,
   field: '',
   required: false,
+  validType: '',
+  customRules: undefined,
   onBeforeLoad: null,
   onLoaded: null,
   onSelect: null
@@ -115,11 +124,6 @@ watch(proxyValue, val => {
   emit('update:modelValue', val)
   props.onSelect?.(val)
 })
-
-function parseRemote (remoteName: string) {
-  const seg = (remoteName || '').split('.')
-  return { module: seg[0] || '', command: seg[1] || '' }
-}
 
 function getParsedWhereItems (): WhereItem[] {
   if (props.fromSysParameters && internalField.value) {
@@ -167,16 +171,17 @@ async function fetchRemoteData (
   const rn = remoteName || props.remoteName
   if (!rn) return []
 
-  const { module, command } = parseRemote(rn)
   const { loadData: apiLoadData } = dataUtils(rn)
 
+  // Payload aligned with jQuery $.fn.combobox.load (bootstrap.infolight.js:10455).
+  // dataApi.loadData fills in mode/module/command automatically; we only supply
+  // the variable params. whereItems is always an array (possibly empty) — never
+  // null — so dataApi's JSON.stringify produces '[]' instead of the string 'null',
+  // which the backend rejected with 400.
   const body = {
-    mode: 'getDataset',
-    module,
-    command,
-    remoteName: rn,
-    whereItems: parsedWhereItems.length ? parsedWhereItems : null,
-    whereStr: props.whereStr
+    total: false,
+    whereStr: props.whereStr || '',
+    whereItems: parsedWhereItems
   }
 
   const r = await apiLoadData(body)
@@ -240,7 +245,16 @@ function validate (): string {
   const isEmpty = props.multiple
     ? !Array.isArray(v) || !(v as unknown[]).length
     : v == null || v === ''
-  const msg = props.required && isEmpty ? 'required' : ''
+
+  let msg = ''
+  if (props.required && isEmpty) {
+    msg = 'required'
+  } else if (props.validType && !isEmpty) {
+    const text = props.multiple
+      ? (v as unknown[]).join(props.multipleSeparator)
+      : String(v ?? '')
+    msg = runValidate(props.validType, text, props.customRules)
+  }
   emit('validate', msg)
   return msg
 }

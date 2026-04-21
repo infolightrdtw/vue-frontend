@@ -6,7 +6,7 @@
       :placeholder="prompt || ''"
       :maxlength="effectiveMaxLength"
       :style="inputStyle"
-      :disabled="readonly"
+      :disabled="disabled || readonly"
       :value="innerValue"
       @input="onInput"
       @blur="handleBlur"
@@ -32,6 +32,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { validate as runValidate, type ValidatorRuleMap } from '@/composables/useValidator'
 
 defineOptions({ name: 'TextboxEditor' })
 
@@ -45,8 +46,14 @@ interface Props {
   // Maps to C# `Readonly`. jQuery (bootstrap.infolight.js:2358-2359) applies it
   // as the HTML `disabled` attribute, so we mirror that here for behavioral parity.
   readonly?: boolean
+  // Declared explicitly so DataForm's `disabled: false` fall-through can't
+  // override our `:disabled="disabled || readonly"` binding on the input.
+  disabled?: boolean
   iconCls?: string
   required?: boolean
+  /** jQuery-compatible rule string, e.g. `"email"`, `"maxLength[20]"`, `"range[1,5]"`. */
+  validType?: string
+  customRules?: ValidatorRuleMap
   onBlurCb?: ((e: FocusEvent) => void) | null
 }
 
@@ -56,8 +63,11 @@ const props = withDefaults(defineProps<Props>(), {
   textAlign: 'left',
   prompt: '',
   readonly: false,
+  disabled: false,
   iconCls: '',
   required: false,
+  validType: '',
+  customRules: undefined,
   onBlurCb: null
 })
 
@@ -101,8 +111,8 @@ function validate (): string {
   let msg = ''
   if (props.required && value.trim() === '') {
     msg = 'required'
-  } else if (effectiveMaxLength.value && value.length > effectiveMaxLength.value) {
-    msg = 'maxLength'
+  } else if (props.validType) {
+    msg = runValidate(props.validType, value, props.customRules)
   }
   errorMessage.value = msg
   emit('validate', msg)

@@ -54,7 +54,7 @@
                         </template>
                     </div>
                 </form>
-                <slot :row="formState" :readonly="isReadOnly"></slot>
+                <slot :row="formState" :readonly="isReadOnly" :panelColumns="panelColumns"></slot>
             </div>
 
             <div class="card-footer d-flex justify-content-between align-items-center">
@@ -81,12 +81,16 @@
     import dataUtils from '@/utils/dataApi'
 
     function resolveEditorType(column) {
-        const t = column?.editorType || column?.type || 'textbox'
+        const t = column?.editorType || column?.editor?.type || column?.type || 'textbox'
         return String(t || 'textbox').toLowerCase()
     }
 
     function resolveEditorOptions(column, row) {
-        const base = { ...(column?.editorProps || {}) }
+        // Accept both schemas: new-style `editorProps` and old-style `editor.options`
+        // (the design tool currently emits the latter). editorProps wins on conflicts.
+        const fromEditor = column?.editor?.options || {}
+        const fromEditorProps = column?.editorProps || {}
+        const base = { ...fromEditor, ...fromEditorProps }
 
         const field = column?.key || column?.field
         const title = column?.label || column?.title || field
@@ -185,6 +189,7 @@
 
     const visible = ref(false)
     const isReadOnly = computed(() => formStatus.value == 'view')
+    const panelColumns = reactive([])
     const saving = ref(false)
     const formState = reactive({})
     const fieldError = ref({})
@@ -1015,7 +1020,10 @@
     function getFlowRow() {
         const row = toRaw(formState)
         return Object.fromEntries(Object.entries(row).filter(([key, value]) => {
-            const column = props.columns.find(c => c.field == key)
+            let column = props.columns.find(c => c.field == key)
+            if (!column) {
+                column = panelColumns.find(c => c.field == key)
+            }
             if (column && column.editor && ['signature', 'htmleditor', 'fileupload'].indexOf(column.editor.type) >= 0) {
                 return false
             }

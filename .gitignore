@@ -27,6 +27,7 @@ pnpm-debug.log*
 /src/pages/bootstrap/
 /src/composables/__tests__
 /src/components/editors/__tests__
+/src/components/elements/__tests__
 /.vs
 
 .svn/
