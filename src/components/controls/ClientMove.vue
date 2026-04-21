@@ -1,9 +1,9 @@
 <template>
   <Teleport to="body">
-    <div 
-      v-if="isModalOpen" 
-      class="modal fade show" 
-      style="display: block; background: rgba(0,0,0,0.4);" 
+    <div
+      v-if="isModalOpen"
+      class="clientmove modal fade show"
+      style="display: block; background: rgba(0,0,0,0.4);"
       tabindex="-1"
     >
       <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable custom-modal">
@@ -95,8 +95,8 @@
               </nav>
 
               <div>
-                <button type="button" class="btn btn-secondary me-2" @click="closeModal">取消</button>
-                <button type="button" class="btn btn-primary options-ok" @click="confirmMove" :disabled="loading">確定</button>
+                  <button type="button" class="btn btn-primary options-ok me-2" @click="confirmMove" :disabled="loading">確定</button>
+                  <button type="button" class="btn btn-default" @click="closeModal">取消</button>
               </div>
             </div>
           </div>
@@ -162,14 +162,16 @@ function goPage(p: number) {
 }
 
 const openMove = () => {
-  checkedRows.value = [];
-  currentPage.value = 1;
-  isModalOpen.value = true;
-  fetchData();
+    checkedRows.value = [];      
+    currentPage.value = 1;  
+    isModalOpen.value = true;
+    fetchData();
 };
 
 const closeModal = () => {
-  isModalOpen.value = false;
+    isModalOpen.value = false;
+    checkedRows.value = [];  
+    currentPage.value = 1; 
 };
 
 function getDParams(sourceRow: any = null) {
@@ -345,7 +347,10 @@ const addRows = (sourceRows: any[]) => {
     }
   });
 
-  if (insertedCount > 0 && tgInstance.autoApply !== false && typeof tgInstance.submit === 'function') {
+  const autoApply = tgInstance.autoApply !== undefined
+    ? tgInstance.autoApply
+    : tgInstance.$props?.autoApply;
+  if (insertedCount > 0 && autoApply === true && typeof tgInstance.submit === 'function') {
     tgInstance.submit();
   }
 };

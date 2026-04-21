@@ -143,8 +143,8 @@
     import blackThemeUrl from '@/assets/stylesheets/themes/vue_black.css?url'
     import violetThemeUrl from '@/assets/stylesheets/themes/vue_violet.css?url'
 
-    import defaultLogo from '../assets/images/logo-infolight.png'
-    import defaultBg from '/src/assets/images/bg_main.png'
+    import defaultLogo from '@/assets/images/logo-infolight.png'
+    import defaultBg from '@/assets/images/bg_main.png'
 
     const __functions = { }
     const __controls = { }
@@ -153,6 +153,7 @@
 
     const currentLogo = ref(defaultLogo)
     const currentHomeBg = ref(defaultBg)
+    const homeBgImage = computed(() => `url(${currentHomeBg.value})`)
 
     import mainUtils from '@/utils/mainApi'
     const {
@@ -490,8 +491,10 @@
 .tab-pane {
     height: 100%;
 }
-#tab-pane-home {
-    background: url(v-bind(currentHomeBg)) no-repeat center;
+:deep(#tab-pane-home) {
+    background-image: v-bind(homeBgImage);
+    background-repeat: no-repeat;
+    background-position: center;
     background-size: cover;
 }
 .dropdown-menu {

@@ -389,23 +389,28 @@ export default function (root: any) {
             datas.forEach(data => {
                 const id = (data.ActivityID || data.ID).split('_')[0]
                 const activity = getActivityByID(controls, id, true)
-                if (n == 'History') {
-                    if (activity.options.type == 'NotifyActivity') {
+                if (activity) {
+                    if (n == 'History') {
+                        if (activity.options.type == 'NotifyActivity') {
+                            activity.datas = activity.datas || []
+                        }
+                        else {
+                            activity.datas = []
+                        }
+                        activity.datas.push({ type: n.toLowerCase(), text: `(${data.UserName || data.RoleName})`, title: (data.StartDatetime || '').split('.')[0].replace(/T/g, ' ') + '\r\n' + data.Remark })
+                    }
+                    else if (n == 'Notify') {
                         activity.datas = activity.datas || []
+                        activity.datas.push({ type: 'next', text: `(${data.UserName || data.RoleName})` })
                     }
                     else {
-                        activity.datas = []
+                        activity.datas = activity.datas || []
+                        activity.datas.push({ type: n.toLowerCase(), text: `(${data.UserName || data.RoleName})` })
                     }
-                    activity.datas.push({ type: n.toLowerCase(), text: `(${data.UserName || data.RoleName })`, title: (data.StartDatetime || '').split('.')[0].replace(/T/g, ' ') + '\r\n' + data.Remark })
                 }
-                else if (n == 'Notify') {
-                    activity.datas = activity.datas || []
-                    activity.datas.push({ type: 'next', text: `(${data.UserName || data.RoleName})` })
-                } 
                 else {
-                    activity.datas = activity.datas || []
-                    activity.datas.push({ type: n.toLowerCase(), text: `(${ data.UserName || data.RoleName })` })
-                } 
+                    //console.log(`activity:'${id}' not found.`)
+                }
             })
         })
 

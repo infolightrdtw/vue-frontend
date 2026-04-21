@@ -25,6 +25,9 @@ pnpm-debug.log*
 /public/
 /src/bootstrap/
 /src/pages/bootstrap/
+/src/composables/__tests__
+/src/components/editors/__tests__
+/.vs
 
 .svn/
 .DS_Store

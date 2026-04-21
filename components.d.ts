@@ -7,9 +7,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    '(2)': typeof import('./src/components/editors/Updater - 複製 (2).vue')['default']
-    '(3)': typeof import('./src/components/editors/Updater - 複製 (3).vue')['default']
-    '複製': typeof import('./src/components/editors/Scan - 複製.vue')['default']
     Autocomplete: typeof import('./src/components/editors/Autocomplete.vue')['default']
     BAddon: typeof import('./src/components/elements/BAddon.vue')['default']
     BAlert: typeof import('./src/components/elements/BAlert.vue')['default']
@@ -33,7 +30,6 @@ declare module 'vue' {
     Creator: typeof import('./src/components/editors/Creator.vue')['default']
     DataForm: typeof import('./src/components/controls/DataForm.vue')['default']
     DataGrid: typeof import('./src/components/controls/DataGrid.vue')['default']
-    Datalist: typeof import('./src/components/controls/Datalist.vue')['default']
     DataList: typeof import('./src/components/controls/DataList.vue')['default']
     DataPanel: typeof import('./src/components/controls/DataPanel.vue')['default']
     Datebox: typeof import('./src/components/editors/Datebox.vue')['default']
@@ -46,7 +42,6 @@ declare module 'vue' {
     FileImage: typeof import('./src/html/FileImage.vue')['default']
     FileLink: typeof import('./src/html/FileLink.vue')['default']
     Fileupload: typeof import('./src/components/editors/Fileupload.vue')['default']
-    FLcomment: typeof import('./src/components/controls/FLcomment.vue')['default']
     FlowActivity: typeof import('./src/components/flow/preview/FlowActivity.vue')['default']
     FlowAttachments: typeof import('./src/components/flow/FlowAttachments.vue')['default']
     FlowButtons: typeof import('./src/components/flow/FlowButtons.vue')['default']
@@ -113,7 +108,6 @@ declare module 'vue' {
     Signature: typeof import('./src/components/editors/Signature.vue')['default']
     Slider: typeof import('./src/components/editors/Slider.vue')['default']
     Steps: typeof import('./src/components/controls/Steps.vue')['default']
-    STEPS: typeof import('./src/components/controls/STEPS.vue')['default']
     Submenu: typeof import('./src/components/editors/Submenu.vue')['default']
     SubMenuItem: typeof import('./src/html/SubMenuItem.vue')['default']
     Switch: typeof import('./src/components/editors/Switch.vue')['default']

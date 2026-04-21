@@ -16,120 +16,98 @@
   </select>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch, computed, onMounted, getCurrentInstance } from 'vue'
 import dataUtils from '@/utils/dataApi'
+import { resolveFieldFromDom } from '@/composables/useFieldFromDom'
 
-const props = defineProps({
-  type: {
-      type: String,
-      default: ''
-  },
-  modelValue: {
-    type: [String, Number, Array, Object, null],
-    default: ''
-  },
-  multiple: {
-    type: Boolean,
-    default: false
-  },
-  readonly: {
-    type: Boolean,
-    default: false
-  },
-  allowEmpty: {
-    type: Boolean,
-    default: false
-  },
-  itemsSource: {
-    type: Array,
-    default: () => []
-  },
-  items: {
-    type: Array,
-    default: null
-  },
-  options: {
-    type: Array,
-    default: null
-  },
-  valueField: {
-    type: String,
-    default: 'value'
-  },
-  textField: {
-    type: String,
-    default: 'text'
-  },
-  remoteName: {
-    type: String,
-    default: ''
-  },
-  whereStr: {
-    type: String,
-    default: ''
-  },
-  whereItems: {
-    type: [Array, Object, String, null],
-    default: null
-  },
-  multipleSeparator: {
-    type: String,
-    default: ','
-  },
-  fromSysParameters: {
-    type: Boolean,
-    default: false
-  },
-  field: {
-    type: String,
-    default: ''
-  },
-  onBeforeLoad: Function,
-  onLoaded: Function,
-  onSelect: Function
+defineOptions({ name: 'ComboboxEditor' })
+
+type ItemRow = Record<string, unknown>
+
+interface WhereItem {
+  field: string
+  operator: string
+  value: unknown
+  isNvarChar?: boolean
+}
+
+interface Props {
+  type?: string
+  modelValue?: string | number | unknown[] | Record<string, unknown> | null
+  multiple?: boolean
+  readonly?: boolean
+  allowEmpty?: boolean
+  itemsSource?: ItemRow[]
+  items?: ItemRow[] | null
+  options?: ItemRow[] | null
+  valueField?: string
+  textField?: string
+  remoteName?: string
+  whereStr?: string
+  whereItems?: WhereItem[] | string | null
+  multipleSeparator?: string
+  fromSysParameters?: boolean
+  field?: string
+  required?: boolean
+  onBeforeLoad?: ((param: { whereItems: WhereItem[] }) => void) | null
+  onLoaded?: ((items: ItemRow[]) => void) | null
+  onSelect?: ((value: unknown) => void) | null
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  type: '',
+  modelValue: '',
+  multiple: false,
+  readonly: false,
+  allowEmpty: false,
+  itemsSource: () => [],
+  items: null,
+  options: null,
+  valueField: 'value',
+  textField: 'text',
+  remoteName: '',
+  whereStr: '',
+  whereItems: null,
+  multipleSeparator: ',',
+  fromSysParameters: false,
+  field: '',
+  required: false,
+  onBeforeLoad: null,
+  onLoaded: null,
+  onSelect: null
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: unknown): void
+  (e: 'validate', error: string): void
+}>()
 
 const internalField = ref(props.field || '')
+const internalItems = ref<ItemRow[]>([])
 
-const proxyValue = ref(
-  props.multiple
-    ? (Array.isArray(props.modelValue)
-        ? props.modelValue
-        : (typeof props.modelValue === 'string'
-            ? (props.modelValue ? props.modelValue.split(props.multipleSeparator) : [])
-            : [])
-      )
-    : (props.modelValue ?? '')
+function toMultipleArray (val: unknown): unknown[] {
+  if (Array.isArray(val)) return val
+  if (typeof val === 'string') {
+    return val ? val.split(props.multipleSeparator) : []
+  }
+  return []
+}
+
+const proxyValue = ref<unknown>(
+  props.multiple ? toMultipleArray(props.modelValue) : (props.modelValue ?? '')
 )
 
-const internalItems = ref([])
-
-const displayItems = computed(() => {
+const displayItems = computed<ItemRow[]>(() => {
   if (internalItems.value.length) return internalItems.value
-  return props.itemsSource?.length 
-    ? props.itemsSource 
-    : (props.items || props.options || [])
+  if (props.itemsSource?.length) return props.itemsSource
+  return props.items || props.options || []
 })
-
-const resolvedField = computed(() => internalField.value)
 
 watch(
   () => props.modelValue,
   val => {
-    if (props.multiple) {
-      if (Array.isArray(val)) {
-        proxyValue.value = val
-      } else if (typeof val === 'string') {
-        proxyValue.value = val ? val.split(props.multipleSeparator) : []
-      } else {
-        proxyValue.value = []
-      }
-    } else {
-      proxyValue.value = val ?? ''
-    }
+    proxyValue.value = props.multiple ? toMultipleArray(val) : (val ?? '')
   }
 )
 
@@ -138,12 +116,12 @@ watch(proxyValue, val => {
   props.onSelect?.(val)
 })
 
-function parseRemote(remoteName) {
+function parseRemote (remoteName: string) {
   const seg = (remoteName || '').split('.')
   return { module: seg[0] || '', command: seg[1] || '' }
 }
 
-function getParsedWhereItems() {
+function getParsedWhereItems (): WhereItem[] {
   if (props.fromSysParameters && internalField.value) {
     return [{
       field: 'COLUMNNAME',
@@ -157,33 +135,35 @@ function getParsedWhereItems() {
   if (typeof items === 'string' && items.trim()) {
     try { items = JSON.parse(items) } catch { return [] }
   }
-
   return Array.isArray(items) ? items : []
 }
 
-function loadData(data, valueFieldOverride, textFieldOverride) {
+function loadData (
+  data: ItemRow[],
+  valueFieldOverride: string | null,
+  textFieldOverride: string | null
+) {
   const vField = valueFieldOverride || props.valueField || 'value'
   const tField = textFieldOverride || props.textField || 'text'
-
   const valueKey = props.valueField || 'value'
   const textKey = props.textField || 'text'
 
-  const result = []
-  for (var i = 0; i < data.length; i++) {
-    const row = data[i] || {}
-
-    const mapped = {}
-    mapped[valueKey] = row[vField]
-    mapped[textKey] = row[tField] 
-
-    result.push(mapped)
-  }
+  const result: ItemRow[] = data.map(row => {
+    const r = row || {}
+    const mapped: ItemRow = {}
+    mapped[valueKey] = r[vField]
+    mapped[textKey] = r[tField]
+    return mapped
+  })
 
   internalItems.value = result
-  props.onLoaded && props.onLoaded(result)
+  props.onLoaded?.(result)
 }
 
-async function fetchRemoteData(remoteName, parsedWhereItems) {
+async function fetchRemoteData (
+  remoteName: string,
+  parsedWhereItems: WhereItem[]
+): Promise<ItemRow[]> {
   const rn = remoteName || props.remoteName
   if (!rn) return []
 
@@ -195,45 +175,49 @@ async function fetchRemoteData(remoteName, parsedWhereItems) {
     module,
     command,
     remoteName: rn,
-    whereItems: parsedWhereItems && parsedWhereItems.length ? parsedWhereItems : null,
+    whereItems: parsedWhereItems.length ? parsedWhereItems : null,
     whereStr: props.whereStr
   }
 
   const r = await apiLoadData(body)
   const data = r && (r.rows || r.items || r.data || r)
-
   return Array.isArray(data) ? data : []
 }
 
-async function load() {
-  const opts = props
-  const parsedItems = getParsedWhereItems()
-
-  if (opts.fromSysParameters) {
-    if (resolvedField.value) {
-      const remoteName = opts.remoteName || 'SystemTable.sysParas'
-      const param = { whereItems: parsedItems }
-      opts.onBeforeLoad?.(param)
-
-      try {
-        const data = await fetchRemoteData(remoteName, parsedItems)
-        loadData(data || [], 'VALUE', 'VALUE')
-        syncValueAfterLoad()
-      } catch (err) {
-        console.error('[Combobox] 系統參數載入失敗:', err)
-        loadData([], 'VALUE', 'VALUE')
-      }
-      return
+function syncValueAfterLoad () {
+  const current = proxyValue.value
+  if (props.multiple) {
+    const isEmpty = !Array.isArray(current) || !(current as unknown[]).length
+    if (isEmpty) proxyValue.value = toMultipleArray(props.modelValue)
+  } else {
+    if (current == null || current === '') {
+      proxyValue.value = props.modelValue ?? ''
     }
   }
+}
 
-  if (opts.remoteName) {
-    const param = { whereItems: parsedItems }
-    opts.onBeforeLoad?.(param)
+async function load () {
+  const parsedItems = getParsedWhereItems()
 
+  if (props.fromSysParameters && internalField.value) {
+    const remoteName = props.remoteName || 'SystemTable.sysParas'
+    props.onBeforeLoad?.({ whereItems: parsedItems })
     try {
-      const data = await fetchRemoteData(opts.remoteName, parsedItems)
-      loadData(data || [], null, null)
+      const data = await fetchRemoteData(remoteName, parsedItems)
+      loadData(data, 'VALUE', 'VALUE')
+      syncValueAfterLoad()
+    } catch (err) {
+      console.error('[Combobox] 系統參數載入失敗:', err)
+      loadData([], 'VALUE', 'VALUE')
+    }
+    return
+  }
+
+  if (props.remoteName) {
+    props.onBeforeLoad?.({ whereItems: parsedItems })
+    try {
+      const data = await fetchRemoteData(props.remoteName, parsedItems)
+      loadData(data, null, null)
       syncValueAfterLoad()
     } catch (err) {
       console.error('[Combobox] API 載入失敗:', err)
@@ -242,99 +226,44 @@ async function load() {
     return
   }
 
-  const staticList = opts.itemsSource?.length ? opts.itemsSource : (opts.items || opts.options)
+  const staticList = props.itemsSource?.length
+    ? props.itemsSource
+    : (props.items || props.options)
   if (staticList && staticList.length) {
     loadData(staticList, 'value', 'text')
     syncValueAfterLoad()
   }
 }
 
-function syncValueAfterLoad () {
-  const opts = props
-  const current = proxyValue.value
-
-  if (opts.multiple) {
-    if (!Array.isArray(current) || !current.length) {
-      var src = props.modelValue ?? []
-      if (typeof src === 'string') {
-        src = src ? src.split(opts.multipleSeparator || ',') : []
-      } else if (!Array.isArray(src)) {
-        src = []
-      }
-      proxyValue.value = src
-    }
-  } else {
-    if (current == null || current === '') {
-      proxyValue.value = props.modelValue ?? ''
-    }
-  }
+function validate (): string {
+  const v = proxyValue.value
+  const isEmpty = props.multiple
+    ? !Array.isArray(v) || !(v as unknown[]).length
+    : v == null || v === ''
+  const msg = props.required && isEmpty ? 'required' : ''
+  emit('validate', msg)
+  return msg
 }
 
 onMounted(() => {
-  var needReload = false
+  let needReload = false
 
   if (!internalField.value) {
     const inst = getCurrentInstance()
-    const root = inst && inst.proxy && inst.proxy.$el
-
-    if (root) {
-      var labelText = ''
-
-      const row = root.closest && root.closest('.row')
-      if (row) {
-        const labelEl = row.querySelector('label')
-        if (labelEl) {
-          labelText = (labelEl.textContent || '').trim()
-        }
-      }
-
-      if (!labelText) {
-        var table = null
-        var current = root
-        while (current && !table) {
-          if (current.tagName === 'TABLE') {
-            table = current
-            break
-          }
-          current = current.parentElement
-        }
-
-        if (table) {
-          const td = root.closest && root.closest('td')
-          if (td) {
-            const tr = td.parentElement
-            const cells = Array.from(tr.children)
-            const colIndex = cells.indexOf(td)
-            const headerRow = table.querySelector('thead tr')
-            if (headerRow && colIndex >= 0) {
-              const ths = Array.from(headerRow.children)
-              const targetTh = ths[colIndex]
-              if (targetTh) {
-                labelText = (targetTh.textContent || '').trim()
-              }
-            }
-          }
-        }
-      }
-
-      if (labelText) {
-        internalField.value = labelText
-        needReload = true 
-      }
+    const root = (inst?.proxy as { $el?: Element } | undefined)?.$el ?? null
+    const resolved = resolveFieldFromDom(root)
+    if (resolved) {
+      internalField.value = resolved
+      needReload = true
     }
   }
 
   load().then(() => {
-    if (needReload) {
-      load()
-    }
+    if (needReload) load()
   })
 })
 
-defineExpose({
-  load,
-  loadData
-})
+defineExpose({ load, loadData, validate })
 </script>
 
 <style scoped>

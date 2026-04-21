@@ -429,6 +429,22 @@
 
     const sortCls = c => c.field == sort.value ? order.value : ''
     const editorType = c => c.editor ? (c.editor.type || 'textbox') : 'textbox'
+
+    function resolveWhereItemsExpressions(whereItems) {
+        if (!Array.isArray(whereItems) || whereItems.length === 0) return whereItems
+        const dParams = {
+            parent: getParentValues() || {},
+            row: toRaw(editRow.value) || {},
+            autoseq: toRaw(rows) || []
+        }
+        return whereItems.map(wi => {
+            if (!wi || typeof wi.value !== 'string') return wi
+            if (!/^[a-zA-Z_]+\[/.test(wi.value)) return wi
+            const resolved = $.getDefaultValue ? $.getDefaultValue(wi.value, dParams) : undefined
+            return { ...wi, value: resolved !== undefined ? resolved : wi.value }
+        })
+    }
+
     const editorOptions = c => {
         const ed = c.editor || {}
         const opts = ed.options || {}
@@ -436,6 +452,8 @@
         const type = ed.type || 'textbox'
 
         if (type === 'refval') {
+            base.whereItems = resolveWhereItemsExpressions(base.whereItems)
+
             const prevOnApply = base.onApply
             base.onApply = (mapped, row) => {
                 applyMappedToGrid(mapped)
@@ -498,6 +516,8 @@
 
             select(-1)
             resetEdit()
+            rows.splice(0, rows.length)
+            acceptChanges()
             const loadParam = {}
             if (props.pagination) {
                 //pagination
@@ -528,6 +548,7 @@
                     parentRow,
                     parentTable,
                     parentReadOnly,
+                    parentStatus,
                 } = form.value.getParentObj()
 
                 //register detail grid
@@ -535,6 +556,10 @@
 
                 isReadonly.value = parentReadOnly
                 if (props.onBeforeLoad && $.invoke(props.onBeforeLoad, loadParam) === false) {
+                    return
+                }
+                if (parentStatus === 'inserted') {
+                    rowsCount.value = 0
                     return
                 }
                 const data = await loadDetailData(parentTable, parentRow, loadParam)
@@ -1298,6 +1323,8 @@
 
         title: props.title,
         queryTitle: props.queryTitle,
+        parentObject: props.parentObject,
+        autoApply: props.autoApply,
         showLoading,
         hideLoading,
         ...EXPOSE_METHODS

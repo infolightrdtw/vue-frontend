@@ -999,7 +999,8 @@
         return {
             parentTable,
             parentRow: toRaw(formState),
-            parentReadOnly: isReadOnly.value
+            parentReadOnly: isReadOnly.value,
+            parentStatus: formStatus.value
         }
     }
 
@@ -1011,12 +1012,25 @@
         hiddenFields.value.add(columnName)
     }
 
+    function getFlowRow() {
+        const row = toRaw(formState)
+        return Object.fromEntries(Object.entries(row).filter(([key, value]) => {
+            const column = props.columns.find(c => c.field == key)
+            if (column && column.editor && ['signature', 'htmleditor', 'fileupload'].indexOf(column.editor.type) >= 0) {
+                return false
+            }
+            else {
+                return true
+            }
+        }))
+    }
+
     function getFlowParameter(flowRow) {
         const titles = {}
         props.columns.forEach(c => {
             titles[c.field] = (c.title || c.field).replace(/^\*/, '')
         })
-        const row = toRaw(formState)
+        const row = getFlowRow()
         if (flowRow.Parameter) {
             const pRow = JSON.parse(flowRow.Parameter)
             for (var column in row) {

@@ -4,17 +4,14 @@
       type="text"
       class="form-control"
       :placeholder="prompt || ''"
-      :maxlength="maxLength || null"
+      :maxlength="effectiveMaxLength"
       :style="inputStyle"
-      :readonly="isReadonly"
+      :disabled="readonly"
       :value="innerValue"
       @input="onInput"
       @blur="handleBlur"
     />
-    <button
-      type="button"
-      class="btn btn-outline-secondary form-btn"
-    >
+    <button type="button" class="btn btn-outline-secondary form-btn">
       <i :class="iconCls"></i>
     </button>
   </div>
@@ -24,55 +21,53 @@
     type="text"
     class="form-control"
     :placeholder="prompt || ''"
-    :maxlength="maxLength || null"
+    :maxlength="effectiveMaxLength"
     :style="inputStyle"
-    :readonly="isReadonly"
+    :disabled="readonly"
     :value="innerValue"
     @input="onInput"
     @blur="handleBlur"
   />
 </template>
 
-<script setup>
-import { computed } from 'vue'
+<script setup lang="ts">
+import { computed, ref } from 'vue'
 
-defineOptions({
-  name: 'TextboxEditor'
+defineOptions({ name: 'TextboxEditor' })
+
+type TextAlign = 'left' | 'center' | 'right' | string
+
+interface Props {
+  modelValue?: string | number | null
+  maxLength?: number | null
+  textAlign?: TextAlign
+  prompt?: string
+  // Maps to C# `Readonly`. jQuery (bootstrap.infolight.js:2358-2359) applies it
+  // as the HTML `disabled` attribute, so we mirror that here for behavioral parity.
+  readonly?: boolean
+  iconCls?: string
+  required?: boolean
+  onBlurCb?: ((e: FocusEvent) => void) | null
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: '',
+  maxLength: null,
+  textAlign: 'left',
+  prompt: '',
+  readonly: false,
+  iconCls: '',
+  required: false,
+  onBlurCb: null
 })
 
-const props = defineProps({
-  modelValue: {
-    type: [String, Number],
-    default: ''
-  },
-  // 對應 C# 的 MaxLength
-  maxLength: {
-    type: Number,
-    default: null
-  },
-  textAlign: {
-    type: String,
-    default: 'left' // 會轉小寫
-  },
-  prompt: {
-    type: String,
-    default: ''
-  },
-  readonly: {
-    type: Boolean,
-    default: false
-  },
-  iconCls: {
-    type: String,
-    default: ''
-  },
-  onBlurCb: {
-    type: Function,
-    default: null
-  }
-})
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: string): void
+  (e: 'blur', event: FocusEvent): void
+  (e: 'validate', error: string): void
+}>()
 
-const emit = defineEmits(['update:modelValue', 'blur'])
+const errorMessage = ref('')
 
 const hasIcon = computed(() => !!props.iconCls)
 
@@ -80,21 +75,39 @@ const innerValue = computed(() =>
   props.modelValue == null ? '' : String(props.modelValue)
 )
 
-const inputStyle = computed(() => {
-  const align = (props.textAlign || 'left').toString().toLowerCase()
-  return { textAlign: align }
-})
+const inputStyle = computed(() => ({
+  textAlign: (props.textAlign || 'left').toString().toLowerCase()
+}))
 
-const isReadonly = computed(() => props.readonly)
+const effectiveMaxLength = computed(() =>
+  props.maxLength && props.maxLength > 0 ? props.maxLength : null
+)
 
-function onInput (e) {
-  emit('update:modelValue', e.target.value)
+function onInput (e: Event) {
+  const value = (e.target as HTMLInputElement).value
+  emit('update:modelValue', value)
 }
 
-function handleBlur (e) {
+function handleBlur (e: FocusEvent) {
   emit('blur', e)
   if (typeof props.onBlurCb === 'function') {
     props.onBlurCb(e)
   }
+  validate()
 }
+
+function validate (): string {
+  const value = innerValue.value
+  let msg = ''
+  if (props.required && value.trim() === '') {
+    msg = 'required'
+  } else if (effectiveMaxLength.value && value.length > effectiveMaxLength.value) {
+    msg = 'maxLength'
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
+}
+
+defineExpose({ validate })
 </script>
