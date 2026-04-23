@@ -1,6 +1,11 @@
 <template>
-    <div v-if="visible" class="bootstrap-form position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50" style="z-index: 1050;">
-        <div class="card shadow-lg df-modal" :class="[ fit ? 'df-full' : 'df-modal', modalWidthClass ]">
+    <div v-if="visible"
+         class="bootstrap-form"
+         :class="isDialogMode
+            ? 'position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50'
+            : 'df-inline w-100'"
+         :style="isDialogMode ? 'z-index: 1050;' : null">
+        <div class="card shadow-lg df-modal" :class="[ fit ? 'df-full' : 'df-modal', isDialogMode ? modalWidthClass : 'w-100' ]">
             <div class="card-header d-flex align-items-center justify-content-between">
                 <h5 class="mb-0">{{ formTitle }}</h5>
                 <div class="d-flex align-items-center gap-2">
@@ -35,7 +40,7 @@
                                         </span>
                                     </label>
 
-                                    <div :class="(isFullWidth(f) ? (f.inputCol || 'col-12 col-md-10') : (f.inputCol || 'col-12 col-md-8')) + ' df-input form-editor'">
+                                    <div :class="((isFullWidth(f) ? (f.inputCol || 'col-12 col-md-10') : (f.inputCol || 'col-12 col-md-8')) + ' df-input form-editor' + (editorCls ? ' ' + editorCls : ''))">
                                         <BEditor :type="editorType(f)"
                                                  :options="editorOptions(f)"
                                                  :row="formState"
@@ -91,6 +96,11 @@
         const fromEditor = column?.editor?.options || {}
         const fromEditorProps = column?.editorProps || {}
         const base = { ...fromEditor, ...fromEditorProps }
+
+        if (props.editorCls) {
+            const existing = typeof base.cls === 'string' ? base.cls : ''
+            base.cls = existing ? `${existing} ${props.editorCls}` : props.editorCls
+        }
 
         const field = column?.key || column?.field
         const title = column?.label || column?.title || field
@@ -167,9 +177,26 @@
         isShowFlowIcon: Boolean,
         autoPause: Boolean,
         fit: { type: Boolean, default: false },
+        closeProtect: { type: Boolean, default: false },
+        editorCls: { type: String, default: '' },
+        mode: { type: String, default: 'dialog' },
+        recordLock: { type: Boolean, default: false },
         onLoad: String,
-        onApply: String
+        onApply: String,
+        onApplied: String,
+        onApplyError: String,
+        onCancel: String,
+        onDelete: String,
+        onShowTitle: String,
+        loadAction: String,
+        onFlowLoad: String,
+        onFlowApply: String,
+        onFlowApplied: String,
+        onFlowError: String
     })
+
+    const renderMode = computed(() => String(props.mode || 'dialog').toLowerCase())
+    const isDialogMode = computed(() => renderMode.value === 'dialog')
 
     const validateStyleLower = computed(() =>
         String(props.validateStyle || '').toLowerCase()
@@ -177,18 +204,26 @@
 
     const emit = defineEmits([
         'update:modelValue',
-
-        //'onLoad',
-        //'onDelete',
-        //'onApply',
-        //'onApplied',
-        //'onApplyError',
-        //'onCancel',
-        //'onShowTitle'
+        'close',
+        'cancel',
+        'removeLock'
     ])
 
     const visible = ref(false)
-    const isReadOnly = computed(() => formStatus.value == 'view')
+    let lastSubmittedRow = {}
+    const forceReadonly = ref(null)
+    const localWhereItems = ref(null)
+    const localWhereStr = ref(null)
+    const isReadOnly = computed(() => {
+        if (forceReadonly.value !== null) return !!forceReadonly.value
+        return formStatus.value == 'view' || !!props.readonly
+    })
+    let originalSnapshot = ''
+    function isDirty () {
+        try {
+            return JSON.stringify(toRaw(formState)) !== originalSnapshot
+        } catch { return false }
+    }
     const panelColumns = reactive([])
     const saving = ref(false)
     const formState = reactive({})
@@ -199,7 +234,16 @@
     const isNewRecord = computed(() => formStatus.value == 'inserted')
     const dataKeys = ref([])
     const hiddenFields = ref(new Set())
-    const formTitle = computed(() => [props.title, flowRow.value?.TextSuffix].filter(Boolean).join('_'))
+    const formTitle = computed(() => {
+        const base = [props.title, flowRow.value?.TextSuffix].filter(Boolean).join('_')
+        if (props.onShowTitle && props.root?.invoke) {
+            try {
+                const next = props.root.invoke(props.onShowTitle, base, formState)
+                if (typeof next === 'string' && next.length) return next
+            } catch { /* ignore — fall back to base */ }
+        }
+        return base
+    })
 
     const keyFields = computed(() => {
         if (Array.isArray(dataKeys.value) && dataKeys.value.length > 0) {
@@ -249,6 +293,11 @@
                         formState[key] = v
                     }
                 }
+                const cur2 = formState[key]
+                const empty2 = (cur2 === undefined || cur2 === null || cur2 === '')
+                if (empty2 && f.carryOn && lastSubmittedRow[key] !== undefined && lastSubmittedRow[key] !== '') {
+                    formState[key] = lastSubmittedRow[key]
+                }
             }
         }
         visible.value = true
@@ -256,6 +305,19 @@
         if (props.onLoad) {
             props.root.invoke(props.onLoad, formState)
         }
+        if (props.loadAction) {
+            nextTick(() => {
+                try {
+                    if (props.loadAction === 'insert_row') insert_row()
+                    else if (props.loadAction === 'edit_row') edit_row(toRaw(formState))
+                    else if (props.loadAction === 'delete_row') delete_row()
+                } catch (e) { console.warn('[DataForm] loadAction failed', e) }
+            })
+        }
+        if (flowRow.value && props.onFlowLoad) {
+            try { props.root.invoke(props.onFlowLoad, toRaw(flowRow.value)) } catch { /* user code */ }
+        }
+        try { originalSnapshot = JSON.stringify(toRaw(formState)) } catch { originalSnapshot = '' }
     }
 
     function computeDefault(def, ctx = {}) {
@@ -391,7 +453,19 @@
         }
     }
 
-    function close() {
+    function close(force = false) {
+        if (!force && props.closeProtect && isDirty()) {
+            const msg = props.root.localeMessages?.value?.confirmClose
+                || 'Discard unsaved changes?'
+            if (!window.confirm(msg)) return
+        }
+        if (props.recordLock && formStatus.value === 'updated' && dataKeys.value?.length) {
+            try {
+                const { removeLock: apiRemoveLock } = dataUtils(props.remoteName)
+                apiRemoveLock(dataKeys.value.join(','), [toRaw(formState)])
+                    .catch(err => console.warn('[DataForm] removeLock failed', err))
+            } catch (err) { /* ignore */ }
+        }
         visible.value = false
         Object.keys(fieldError.value).forEach(k => {
             fieldError.value[k] = null
@@ -416,7 +490,13 @@
     }
 
     function onClose() { close() }
-    function onCancel() { emit('cancel'); close() }
+    function onCancel() {
+        emit('cancel')
+        if (props.onCancel) {
+            try { props.root.invoke(props.onCancel, formState) } catch { /* user code */ }
+        }
+        close()
+    }
 
     async function submit(closeModal = true) {
         const status = formStatus.value
@@ -425,6 +505,9 @@
         }
         if (props.onApply && props.root.invoke(props.onApply) === false) {
             return false
+        }
+        if (flowRow.value && props.onFlowApply) {
+            try { props.root.invoke(props.onFlowApply, toRaw(formState)) } catch { /* user code */ }
         }
         if (!validate()) {
             return false
@@ -479,7 +562,21 @@
                 }
             }
             else {
-                close()
+                close(true)
+            }
+            try { originalSnapshot = JSON.stringify(toRaw(formState)) } catch { /* noop */ }
+            try { lastSubmittedRow = { ...toRaw(formState) } } catch { /* noop */ }
+            if (props.onApplied) {
+                try { props.root.invoke(props.onApplied, formState, result) } catch { /* user code */ }
+            }
+            if (flowRow.value && props.onFlowApplied) {
+                try { props.root.invoke(props.onFlowApplied, result) } catch { /* user code */ }
+            }
+            if (props.recordLock && status === 'updated') {
+                try {
+                    const { removeLock: apiRemoveLock } = dataUtils(props.remoteName)
+                    await apiRemoveLock(dataKeys.value.join(','), [toRaw(formState)])
+                } catch (lockErr) { /* non-fatal — log and continue */ console.warn('[DataForm] removeLock failed', lockErr) }
             }
             return true
         }
@@ -495,10 +592,16 @@
                 }
                 props.root.showError(err)
             }
-
-            else if (props.options?.onApplyError) {
+            else if (props.onApplyError && props.root?.invoke) {
                 try {
-                    props.options.onApplyError(e)
+                    props.root.invoke(props.onApplyError, e)
+                } catch (ex) {
+                    props.root.showError(ex.message || ex)
+                }
+            }
+            else if (props.dataformOptions?.onApplyError) {
+                try {
+                    props.dataformOptions.onApplyError(e)
                 } catch (ex) {
                     props.root.showError(ex.message || ex)
                 }
@@ -506,6 +609,9 @@
             }
             else {
                 props.root.showError(e)
+            }
+            if (flowRow.value && props.onFlowError) {
+                try { props.root.invoke(props.onFlowError, e) } catch { /* user code */ }
             }
             return false
         }
@@ -862,6 +968,7 @@
                     const editorProps = editor.options || {}
                     return {
                         key,
+                        field: key,
                         label,
                         span: c.span || 1,
                         editorType,
@@ -898,14 +1005,20 @@
 
     function computeColClass(f) {
         const span = Number(f?.span ?? 1)
+        const cols = Math.max(1, Math.min(12, Number(props.horizontalColumnsCount) || 2))
+        const slot = Math.floor(12 / cols)
 
-        if (span >= 2) {
-            return 'col-12 col-md-18'
+        if (span >= cols) {
+            // Full-row field
+            return 'col-12 col-md-12'
+        }
+        if (span > 1) {
+            return `col-12 col-md-${Math.min(12, slot * span)}`
         }
 
         var userCol = (f && (f.col || f.grid)) ? (f.col || f.grid) : ''
         if (userCol && /col-(?:md|lg|xl)-12/.test(userCol)) return 'col-12 col-md-12'
-        return 'col-12 col-md-6'
+        return `col-12 col-md-${slot}`
     }
 
 
@@ -1082,11 +1195,180 @@
     //    open({}, toRaw(dataKeys), 'inserted')
     //}
 
+    function clear() {
+        Object.keys(formState).forEach(k => delete formState[k])
+        Object.keys(fieldError.value).forEach(k => { fieldError.value[k] = null })
+        globalError.value = ''
+        try { originalSnapshot = JSON.stringify(toRaw(formState)) } catch { originalSnapshot = '' }
+    }
+
+    function getRow(excludeTypes = []) {
+        const raw = JSON.parse(JSON.stringify(toRaw(formState)))
+        if (!Array.isArray(excludeTypes) || !excludeTypes.length) return raw
+        const cols = props.columns || []
+        const drop = new Set()
+        cols.forEach(c => {
+            const t = (c?.editor?.type || c?.editorType || '').toLowerCase()
+            if (excludeTypes.includes(t)) drop.add(c?.field || c?.key)
+        })
+        drop.forEach(k => { if (k) delete raw[k] })
+        return raw
+    }
+
+    function loadRow(row) {
+        Object.keys(formState).forEach(k => delete formState[k])
+        Object.assign(formState, row || {})
+        try { originalSnapshot = JSON.stringify(toRaw(formState)) } catch { originalSnapshot = '' }
+    }
+
+    async function removeLock(row) {
+        if (!props.recordLock || formStatus.value !== 'updated') return
+        if (!dataKeys.value?.length) return
+        const target = row != null ? row : toRaw(formState)
+        try {
+            const { removeLock: apiRemoveLock } = dataUtils(props.remoteName)
+            await apiRemoveLock(dataKeys.value.join(','), [target])
+        } catch (err) {
+            console.warn('[DataForm] removeLock failed', err)
+        }
+        emit('removeLock', target)
+    }
+
+    function reloadViewObj() {
+        Object.keys(viewGrids).forEach(k => {
+            const g = viewGrids[k]
+            if (g?.value?.load) g.value.load()
+        })
+    }
+
+    function loadDetail() {
+        Object.keys(detailGrids).forEach(k => {
+            const g = detailGrids[k]
+            if (g?.value?.load) g.value.load()
+        })
+    }
+
+    function insert_row(row) {
+        open({ row: row || {}, status: 'inserted', keys: dataKeys.value || [], flowRow: null })
+    }
+
+    function edit_row(row) {
+        const target = row != null ? { ...row } : { ...toRaw(formState) }
+        open({ row: target, status: 'updated', keys: dataKeys.value || [], flowRow: null })
+    }
+
+    async function delete_row() {
+        const row = toRaw(formState)
+        if (props.onDelete && props.root?.invoke) {
+            try {
+                const r = props.root.invoke(props.onDelete, row)
+                if (r === false) return false
+            } catch (e) { /* user code */ }
+        }
+        const msg = props.root?.localeMessages?.value?.confirmDelete
+            || props.root?.getMessage?.('confirm remove')
+            || 'Confirm remove?'
+        if (typeof props.root?.confirmMessage === 'function') {
+            const ok = await props.root.confirmMessage(msg)
+            if (!ok) return false
+        }
+        try {
+            const command = props.remoteName.split('.')[1]
+            const payload = [{ table: command, inserted: [], updated: [], deleted: [{ ...row }] }]
+            const { updateData } = dataUtils(props.remoteName)
+            await updateData(payload, props.duplicateCheck || false)
+            close(true)
+            reloadViewObj()
+            return true
+        } catch (e) {
+            props.root?.showError?.(e)
+            return false
+        }
+    }
+
+    function cancel() {
+        emit('cancel')
+        close()
+    }
+
+    async function reload() {
+        if (!props.remoteName || !Array.isArray(dataKeys.value) || !dataKeys.value.length) {
+            reloadViewObj()
+            return
+        }
+        const row = toRaw(formState)
+        const whereItems = dataKeys.value
+            .filter(k => row[k] !== undefined && row[k] !== null && row[k] !== '')
+            .map(k => ({ field: k, operator: '=', value: row[k] }))
+        if (!whereItems.length) { reloadViewObj(); return }
+        try {
+            const { loadData } = dataUtils(props.remoteName)
+            const data = await loadData({ page: 1, rows: 1, whereItems })
+            const rows = Array.isArray(data) ? data : (data?.rows || [])
+            if (rows[0]) {
+                Object.keys(formState).forEach(k => delete formState[k])
+                Object.assign(formState, rows[0])
+                try { originalSnapshot = JSON.stringify(toRaw(formState)) } catch { originalSnapshot = '' }
+            }
+        } catch (e) {
+            props.root?.showError?.(e)
+        }
+    }
+
+    function setReadonly(val) {
+        forceReadonly.value = val == null ? null : !!val
+    }
+
+    function setWhere(where) {
+        if (Array.isArray(where)) {
+            localWhereItems.value = where
+            localWhereStr.value = null
+        } else if (typeof where === 'string') {
+            localWhereStr.value = where
+            localWhereItems.value = null
+        } else {
+            localWhereItems.value = null
+            localWhereStr.value = null
+        }
+    }
+
+
+    function getDefaultValues() {
+        const values = {}
+        const ctx = { row: formState, parentRow: props?.parentRow, rows: props?.rows }
+        for (const f of (props.columns || [])) {
+            const key = f.key || f.field || f.name
+            if (!key) continue
+            if (f.defaultValue != null && f.defaultValue !== '') {
+                const v = computeDefault(f.defaultValue, ctx)
+                if (v !== undefined) values[key] = v
+            }
+            if ((values[key] == null || values[key] === '') && f.carryOn && lastSubmittedRow[key] !== undefined && lastSubmittedRow[key] !== '') {
+                values[key] = lastSubmittedRow[key]
+            }
+        }
+        return values
+    }
+
     defineExpose({
         open,
         close,
         validate,
         submit,
+        clear,
+        getRow,
+        loadRow,
+        removeLock,
+        reloadViewObj,
+        loadDetail,
+        insert_row,
+        edit_row,
+        delete_row,
+        cancel,
+        reload,
+        setReadonly,
+        setWhere,
+        getDefaultValues,
         getParentObj,
         getFlowParameter,
         currentRow: formState,

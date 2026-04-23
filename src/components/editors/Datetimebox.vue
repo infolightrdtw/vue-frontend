@@ -2,68 +2,83 @@
   <div class="dtb-wrap" ref="wrap">
     <Datebox
       ref="inner"
-      :model-value="displayValue"
-      :format="dateOnlyFormat"
+      :model-value="modelValue"
+      :format="fullFormat"
+      :enable-time="false"
       :min-view="resolvedMinView"
       :prompt="prompt"
-      :readonly="readonly || selectOnly"
+      :readonly="readonly"
+      :select-only="selectOnly"
+      :disabled="disabled"
       :picker-position="pickerPosition"
-      :data-type="dataType || 'date'"
-      @update:model-value="onDatePicked"
-      @change="onDatePicked"
+      :data-type="dataType || 'datetime'"
+      @update:model-value="onDatebox"
+      @change="onDatebox"
     />
 
-    <div v-if="useTime && showTimePanel" class="time-panel" :style="panelStyle">
-      <div class="time-panel-header">
-        <button class="nav" @click="shiftDay(-1)">‹</button>
+    <!-- Step-through time panel (mirrors bootstrap-datetimepicker's hour→minute
+         flow): after the date is picked we pop an hour grid; clicking an hour
+         switches to a minute grid; clicking a minute auto-closes and fires
+         update:modelValue with the final datetime. -->
+    <div v-if="showPanel" class="datetimepicker-picker" :style="panelStyle">
+      <div class="dtp-header">
         <span>{{ headerText }}</span>
-        <button class="nav" @click="shiftDay(1)">›</button>
       </div>
 
-      <div class="hours-grid">
-        <button
-          v-for="h in 24"
-          :key="h"
-          class="cell"
-          :class="{ active: h-1 === hour }"
-          @click="pickHour(h-1)"
-        >
-          {{ (h-1) }}:00
-        </button>
-      </div>
+      <table v-if="stage === 'hour'" class="dtp-hours">
+        <tbody>
+          <tr v-for="r in 4" :key="'hr' + r">
+            <td v-for="c in 6" :key="'hc' + r + '-' + c" class="hour" @click="pickHour((r - 1) * 6 + (c - 1))">
+              {{ two((r - 1) * 6 + (c - 1)) }}:00
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      <div class="minutes" v-if="showMinutePicker">
-        <span class="label">分鐘</span>
-        <select class="form-control" v-model="minute">
-          <option v-for="m in minuteOptions" :key="m" :value="m">{{ two(m) }}</option>
-        </select>
-      </div>
+      <table v-else-if="stage === 'minute'" class="dtp-minutes">
+        <tbody>
+          <tr v-for="r in 3" :key="'mr' + r">
+            <td v-for="c in 4" :key="'mc' + r + '-' + c" class="minute" @click="pickMinute(((r - 1) * 4 + (c - 1)) * 5)">
+              {{ two(hour) }}:{{ two(((r - 1) * 4 + (c - 1)) * 5) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      <div class="actions">
-        <button class="btn btn-primary" @click="confirmTime">確定</button>
-        <button class="btn" @click="cancelTime">取消</button>
-      </div>
+      <table v-else-if="stage === 'second'" class="dtp-minutes">
+        <tbody>
+          <tr v-for="r in 3" :key="'sr' + r">
+            <td v-for="c in 4" :key="'sc' + r + '-' + c" class="minute" @click="pickSecond(((r - 1) * 4 + (c - 1)) * 5)">
+              {{ two(minute) }}:{{ two(((r - 1) * 4 + (c - 1)) * 5) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, nextTick, onBeforeUnmount } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import Datebox from './Datebox.vue'
+import { validate as runValidate } from '@/composables/useValidator'
 
 const props = withDefaults(defineProps<{
   modelValue?: string | null
-  format?: string   
-  timeFormat?: string     
+  format?: string
+  timeFormat?: string
   minView?: 'day' | 'month' | 'year' | string
   dataType?: 'date' | 'time' | 'datetime' | string
   selectOnly?: boolean
   pickerPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | string
   prompt?: string
   readonly?: boolean
+  disabled?: boolean
+  required?: boolean
+  validType?: string
+  customRules?: Record<string, unknown>
   useTime?: boolean
-  minuteStep?: number
-  showMinutePicker?: boolean
+  onSelect?: ((d: Date | null) => void) | null
 }>(), {
   modelValue: '',
   format: 'yyyy-mm-dd',
@@ -71,111 +86,162 @@ const props = withDefaults(defineProps<{
   minView: 'day',
   selectOnly: false,
   readonly: false,
+  disabled: false,
+  required: false,
+  validType: '',
+  customRules: undefined,
   useTime: true,
-  minuteStep: 5,
-  showMinutePicker: false
+  onSelect: null
 })
 
 const emit = defineEmits<{
-  (e:'update:modelValue', v:string): void
-  (e:'change', v:string): void
+  (e: 'update:modelValue', v: string): void
+  (e: 'change', v: string): void
+  (e: 'validate', error: string): void
 }>()
 
 const inner = ref<InstanceType<typeof Datebox> | null>(null)
 const wrap  = ref<HTMLElement | null>(null)
+const showPanel = ref(false)
+const stage = ref<'hour' | 'minute' | 'second'>('hour')
+const panelStyle = ref<Record<string, string>>({})
+const datePart = ref('')
+const hour   = ref(0)
+const minute = ref(0)
+const second = ref(0)
 
-const pickedDate = ref<string>('') // yyyy-mm-dd
-const hour  = ref<number>(0)
-const minute= ref<number>(0)
-
-function split(val?: string | null) {
-  const v = (val || '').trim()
-  if (!v) { pickedDate.value=''; hour.value=0; minute.value=0; return }
-  const [d,t] = v.split(/[\sT]/)
-  pickedDate.value = d || ''
-  if (t) {
-    const [hh,mm] = t.split(':')
-    hour.value   = Number(hh || 0)
-    minute.value = Number(mm || 0)
-  }
-}
-split(props.modelValue)
-watch(() => props.modelValue, split)
-
-const dateOnlyFormat   = computed(() => (props.format || 'yyyy-mm-dd').split(/[\sT]/)[0])
-const resolvedMinView  = computed(() => props.minView || 'day')
-const displayValue = computed(() => {
-  if (!pickedDate.value) return ''
-  if (!props.useTime)    return pickedDate.value
-  return `${pickedDate.value} ${two(hour.value)}:${two(minute.value)}`
+const formatHasTime = computed(() => {
+  const f = String(props.format || '')
+  const tf = String(props.timeFormat || '')
+  return /[HhIiSs]/.test(f) || /[HhIiSs]/.test(tf)
 })
+const timeEnabled = computed(() => props.useTime && formatHasTime.value)
+const showSecond = computed(() => {
+  const f = String(props.format || '')
+  const tf = String(props.timeFormat || '')
+  return /[Ss]/.test(f) || /[Ss]/.test(tf)
+})
+
+const fullFormat = computed(() => {
+  const f = props.format || 'yyyy-mm-dd'
+  if (!timeEnabled.value) return f
+  if (/[HhIiSs]/.test(f)) return f
+  const tf = props.timeFormat || 'HH:ii'
+  return `${f} ${tf}`
+})
+
+const resolvedMinView = computed(() => props.minView || 'day')
 
 const headerText = computed(() => {
-  if (!pickedDate.value) return ''
-  const d = new Date(pickedDate.value.replace(/-/g, '/'))
-  return `${d.getMonth() + 1} 月 ${d.getFullYear()}`
+  if (!datePart.value) return ''
+  if (stage.value === 'hour') return datePart.value
+  if (stage.value === 'minute') return `${datePart.value} ${two(hour.value)}:--`
+  return `${datePart.value} ${two(hour.value)}:${two(minute.value)}:--`
 })
 
-const minuteOptions = computed(() => {
-  const step = Math.max(1, props.minuteStep || 1)
-  const arr:number[] = []
-  for (let m = 0; m < 60; m += step) arr.push(m)
-  return arr
-})
-function two(n:number){ return (n<10 ? '0'+n : ''+n) }
+function two (n: number) { return (n < 10 ? '0' : '') + n }
 
-// 打開時間面板
-const showTimePanel = ref(false)
-const panelStyle = ref<Record<string,string>>({})
-function showTime() {
-  showTimePanel.value = true
+function syncFromValue (v?: string | null) {
+  const s = String(v || '').trim()
+  if (!s) { datePart.value = ''; hour.value = 0; minute.value = 0; second.value = 0; return }
+  const [d, t] = s.split(/[\sT]/)
+  datePart.value = d || ''
+  if (t) {
+    const m = t.match(/(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/)
+    if (m) {
+      hour.value   = Number(m[1] || 0)
+      minute.value = Number(m[2] || 0)
+      second.value = Number(m[3] || 0)
+    }
+  }
+}
+
+function onDatebox (v: string) {
+  const clean = v || ''
+  syncFromValue(clean)
+  emit('update:modelValue', clean)
+  emit('change', clean)
+  if (typeof props.onSelect === 'function') {
+    try {
+      const d = clean ? new Date(clean.replace(/-/g, '/')) : null
+      props.onSelect(d && !isNaN(d.getTime()) ? d : null)
+    } catch { /* ignore user-code errors */ }
+  }
+  validate()
+  if (timeEnabled.value && datePart.value) openPanel()
+}
+
+function openPanel () {
+  stage.value = 'hour'
   nextTick(() => {
     const w = wrap.value
     if (!w) return
-    const rect = w.getBoundingClientRect()
-    panelStyle.value = { left: '0px', top: `${w.clientHeight || 36}px`, minWidth: rect.width + 'px' }
+    panelStyle.value = {
+      left: '0px',
+      top: `${w.clientHeight || 36}px`,
+      minWidth: (w.clientWidth || 220) + 'px'
+    }
+    showPanel.value = true
     bindOutside()
+    inner.value?.closePicker?.()
   })
 }
-function hideTime() { showTimePanel.value = false; unbindOutside() }
+function closePanel () { showPanel.value = false; unbindOutside() }
 
-function onDatePicked(v:string){
-  pickedDate.value = (v || '').split(/[\sT]/)[0]
-  if (props.useTime) showTime()
-  else emitOut()
-}
-function pickHour(h:number){
+function pickHour (h: number) {
   hour.value = h
-  if (!props.showMinutePicker) confirmTime()
+  commit()
+  stage.value = 'minute'
 }
-function confirmTime(){ emitOut(); hideTime() }
-function cancelTime(){ hideTime() }
 
-function emitOut(){
-  if (!pickedDate.value) { emit('update:modelValue',''); emit('change',''); return }
-  const out = props.useTime
-    ? `${pickedDate.value} ${two(hour.value)}:${two(minute.value)}`
-    : pickedDate.value
+function pickMinute (m: number) {
+  minute.value = m
+  commit()
+  if (showSecond.value) {
+    stage.value = 'second'
+  } else {
+    closePanel()
+  }
+}
+
+function pickSecond (s: number) {
+  second.value = s
+  commit()
+  closePanel()
+}
+
+function commit () {
+  if (!datePart.value) return
+  const timeStr = showSecond.value
+    ? `${two(hour.value)}:${two(minute.value)}:${two(second.value)}`
+    : `${two(hour.value)}:${two(minute.value)}`
+  const out = `${datePart.value} ${timeStr}`
   emit('update:modelValue', out)
   emit('change', out)
-}
-function shiftDay(delta:number){
-  if (!pickedDate.value) return
-  const d = new Date(pickedDate.value.replace(/-/g,'/'))
-  d.setDate(d.getDate() + delta)
-  pickedDate.value = `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())}`
+  validate()
 }
 
-// 點外側關閉
-let onDocClick: ((e:MouseEvent)=>void) | null = null
-function bindOutside(){
-  onDocClick = (e:MouseEvent) => {
+function validate (): string {
+  const value = props.modelValue || ''
+  let msg = ''
+  if (props.required && String(value).trim() === '') {
+    msg = 'required'
+  } else if (props.validType && value) {
+    msg = runValidate(props.validType, String(value), props.customRules as never)
+  }
+  emit('validate', msg)
+  return msg
+}
+
+let onDocClick: ((e: MouseEvent) => void) | null = null
+function bindOutside () {
+  onDocClick = (e: MouseEvent) => {
     if (!wrap.value) return
-    if (!wrap.value.contains(e.target as Node)) hideTime()
+    if (!wrap.value.contains(e.target as Node)) closePanel()
   }
   document.addEventListener('mousedown', onDocClick)
 }
-function unbindOutside(){
+function unbindOutside () {
   if (onDocClick) {
     document.removeEventListener('mousedown', onDocClick)
     onDocClick = null
@@ -183,35 +249,76 @@ function unbindOutside(){
 }
 onBeforeUnmount(unbindOutside)
 
-// 對外方法
-function getValue(){
-  return pickedDate.value ? `${pickedDate.value} ${two(hour.value)}:${two(minute.value)}` : ''
+syncFromValue(props.modelValue)
+
+function getValue () { return props.modelValue ?? '' }
+function setValue (v: string) {
+  syncFromValue(v)
+  inner.value?.setValue?.(v)
+  emit('update:modelValue', v || '')
 }
-function setValue(v:string){
-  split(v)
-  inner.value?.setValue?.(pickedDate.value)
-}
-function readonly(v:boolean){
-  // @ts-ignore
+function setReadonly (v: boolean) {
   inner.value?.readonly?.(v)
 }
-defineExpose({ getValue, setValue, readonly })
+defineExpose({ getValue, setValue, readonly: setReadonly, validate })
 </script>
 
 <style scoped>
-.dtb-wrap { position: relative; display: block; }
-.time-panel {
-  position: absolute; z-index: 1000; background: #fff; border: 1px solid #ddd; border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.15); padding: 8px; user-select: none;
+
+.dtb-wrap {
+  position: relative;
+  display: block;
 }
-.time-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px; font-weight: 600; }
-.time-panel-header .nav { background: transparent; border: 0; font-size: 18px; padding: 0 8px; cursor: pointer; }
-.hours-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 6px 0; }
-.cell { border: 1px solid #e0e0e0; background: #fafafa; border-radius: 4px; padding: 6px 0; cursor: pointer; }
-.cell.active { background: #1677ff; color: #fff; border-color: #1677ff; }
-.minutes { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
-.minutes .label { color: #666; }
-.actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 6px; }
-.btn { border: 1px solid #ddd; background: #fff; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
-.btn-primary { background: #1677ff; color: #fff; border-color: #1677ff; }
+
+.datetimepicker-picker {
+  position: absolute;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  margin-top: 2px;
+  min-width: 220px;
+  user-select: none;
+}
+
+.dtp-header {
+  text-align: center;
+  font-weight: 600;
+  padding: 6px 4px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+.datetimepicker-picker table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0;
+}
+
+.datetimepicker-picker table td {
+  text-align: center;
+  cursor: pointer;
+  padding: 8px 0;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+}
+
+.datetimepicker-picker table td:hover {
+  background: #eeeeee;
+}
+
+.datetimepicker-picker table td.hour,
+.datetimepicker-picker table td.minute {
+  width: 16.6%;
+  height: 30px;
+  line-height: 30px;
+}
+
+.dtp-minutes td.minute {
+  width: 25%;
+}
 </style>

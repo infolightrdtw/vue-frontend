@@ -1,13 +1,51 @@
 <template>
-    <div class="table-responsive position-relative">
+    <div class="position-relative" :style="containerStyle">
         <p v-if="title" class="datagrid-title" style="margin:0">{{ title }}</p>
-        <div class="datagrid-toolitem d-flex align-items-center gap-2 mb-2">
-            <div v-if="hasTopTools" class="d-flex align-items-center gap-2">
-                <BButton v-for="item in visibleToolItems" :item="item" defaultCls="btn-sm datagrid-btn" :root="$" @click="toolItemClick"></BButton>
+        <div v-if="hasTopTools || (columnHidable && hiddenColumnList.length)" class="datagrid-toolitem d-flex align-items-center gap-2 mb-2">
+            <BButton v-for="item in visibleToolItems" :item="item" defaultCls="btn-sm datagrid-btn" :root="$" @click="toolItemClick"></BButton>
+            <div v-if="columnHidable && hiddenColumnList.length" class="dg-hidden-cols dropdown ms-auto">
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                        @click="showHiddenColsMenu = !showHiddenColsMenu">
+                    <i class="bi bi-eye"></i>
+                    {{ ($.localeMessages?.value?.hiddenColumns || 'Hidden') }} ({{ hiddenColumnList.length }})
+                </button>
+                <ul v-if="showHiddenColsMenu" class="dropdown-menu show dg-hidden-cols-menu">
+                    <li v-for="col in hiddenColumnList" :key="col.field">
+                        <button type="button" class="dropdown-item" @click="restoreColumn(col.field)">
+                            {{ col.title }}
+                        </button>
+                    </li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li>
+                        <button type="button" class="dropdown-item text-primary" @click="restoreAllColumns">
+                            {{ $.localeMessages?.value?.showAll || 'Show all' }}
+                        </button>
+                    </li>
+                </ul>
             </div>
         </div>
 
-        <div class="modal fade" id="queryModal" tabindex="-1" ref="modalRef" aria-hidden="true">
+        <!-- queryMode='Panel' / 'PanelAuto': inline query form above the grid -->
+        <div v-if="isQueryPanel && queryColumns.length" class="dg-query-panel mb-2 p-2 border rounded bg-light">
+            <BHtmlForm :row="queryValues" :columns="queryColumns" :horizontalColumnsCount="queryColumnsCount"></BHtmlForm>
+            <div class="text-end mt-2">
+                <button class="btn btn-primary btn-sm" @click="runQuery">{{ queryText }}</button>
+            </div>
+        </div>
+
+        <!-- queryMode='Fuzzy': single search field hitting all queryColumns -->
+        <div v-if="isQueryFuzzy" class="dg-fuzzy mb-2 input-group input-group-sm">
+            <input type="text" class="form-control"
+                   v-model="fuzzyText"
+                   :placeholder="$.localeMessages?.value?.search || 'Search'"
+                   @keyup.enter="runFuzzyQuery" />
+            <button class="btn btn-outline-secondary" type="button" @click="runFuzzyQuery">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+
+        <!-- queryMode='Dialog' (default): existing modal -->
+        <div v-if="isQueryDialog" class="modal fade" id="queryModal" tabindex="-1" ref="modalRef" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable custom-modal">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -20,30 +58,40 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-primary" data-bs-dismiss="modal" @click="load">{{ queryText }}</button>
+                        <button class="btn btn-primary" data-bs-dismiss="modal" @click="runQuery">{{ queryText }}</button>
                         <button class="btn btn-secondary" data-bs-dismiss="modal">{{ cancelText }}</button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <div class="table-responsive" :style="tableWrapperStyle">
         <table :id="id" :class="tableClasses" :style="tableStyle">
             <thead>
                 <tr>
+                    <th v-if="showCheckbox" class="rowcheck" style="width:32px">
+                        <input type="checkbox" :checked="allRowsChecked" @change="toggleCheckAll" />
+                    </th>
                     <th v-if="showCommandColumn" style="width: 80px"></th>
                     <th v-for="col in visibleColumns" :key="col.field" :style="{ width: col.cWidth ? col.cWidth + 'px' : undefined }">
-                        {{ col.title }}
+                        <span class="dg-th-title">{{ col.title }}</span>
                         <span v-if="col.sortable" class="fa fa-sort pull-right sort-btn" :class="sortCls(col)" @click="setOrder(col.field)" />
+                        <button v-if="columnHidable && col.field"
+                                type="button"
+                                class="btn btn-sm btn-link p-0 ms-1 dg-hide-col"
+                                :title="$.localeMessages?.value?.hide || 'Hide'"
+                                @click.stop="hideColumn(col.field)">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
                     </th>
                 </tr>
             </thead>
 
             <tbody>
-                <tr v-if="!hasRow">
-                    <td :colspan="columnSpan" class="text-center text-muted"></td>
-                </tr>
-
                 <tr v-for="(row, index) in rows" :class="trCls(index)">
+                    <td v-if="showCheckbox" class="rowcheck">
+                        <input type="checkbox" :checked="isRowChecked(index)" @click.stop="toggleCheck(index)" />
+                    </td>
                     <td v-if="showCommandColumn" class="datagrid-command">
                         <div class="d-flex gap-2 align-items-center" v-if="!isEditing(index)">
                             <i v-if="canView" class="bi bi-search text-info" :title="$.localeMessages?.value?.view || 'View'" @click.stop="view_row(index)"></i>
@@ -73,6 +121,7 @@
             </tbody>
             <tfoot v-if="footRow">
                 <tr>
+                    <td v-if="showCheckbox"></td>
                     <td v-if="showCommandColumn" class="text-end fw-bold">
                     </td>
 
@@ -84,6 +133,11 @@
                 </tr>
             </tfoot>
         </table>
+        </div>
+
+        <div v-if="hasBottomTools" class="datagrid-toolitem d-flex align-items-center gap-2 mt-2">
+            <BButton v-for="item in visibleToolItems" :item="item" defaultCls="btn-sm datagrid-btn" :root="$" @click="toolItemClick"></BButton>
+        </div>
 
         <div v-if="pagination" class="dg-pager d-flex justify-content-end align-items-center gap-2">
             <ul class="pagination pagination-sm mb-0">
@@ -100,12 +154,24 @@
                 <li class="page-item" :class="{ disabled: currentPage === totalPages }"><a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">›</a></li>
                 <li class="page-item" :class="{ disabled: currentPage === totalPages }"><a class="page-link" href="#" @click.prevent="changePage(totalPages)">»</a></li>
             </ul>
+            <div v-if="pageSizeOptions.length" class="d-flex align-items-center gap-1">
+                <select class="form-select form-select-sm dg-pagesize"
+                        :value="pageSize"
+                        @change="(e) => changePageSize((e.target as HTMLSelectElement).value)">
+                    <option v-for="n in pageSizeOptions" :key="n" :value="n">{{ n }}</option>
+                </select>
+                <small class="text-muted">/ {{ $.localeMessages?.value?.page || 'page' }}</small>
+            </div>
+            <input v-if="pageJump"
+                   type="number"
+                   class="form-control form-control-sm dg-pagejump"
+                   min="1"
+                   :max="totalPages || 1"
+                   :placeholder="String(currentPage)"
+                   v-model="pageJumpInput"
+                   @keyup.enter="jumpToPage" />
             <small class="ms-2 text-muted">
-                {{ 
-                    ($.localeMessages?.value?.pageItemsCount || '{1} pages, {0} items')
-                        .replace('{0}', rowsCount)
-                        .replace('{1}', totalPages) 
-                }}
+                {{ $.getMessage('pageItemsCount', rowsCount, totalPages) }}
             </small>
         </div>
 
@@ -316,6 +382,13 @@
     const sort = ref('')
     const order = ref('asc')
     const queryValues = ref({})
+    const autoQueryValues = ref({} as Record<string, unknown>)
+    const hiddenColumnFields = ref(new Set<string>())
+    const checkedRows = ref(new Set<number>())
+    const pageJumpInput = ref<string>('')
+    const hasQueried = ref(false)
+    const showHiddenColsMenu = ref(false)
+    const fuzzyText = ref('')
     const currentPage = ref(1)
     const pageSize = ref(props.pageSize)
     const rowsCount = ref(0)
@@ -329,9 +402,22 @@
     const isReadonly = ref(false)
 
     const visibleColumns = computed(() => {
-        return columns.filter(c => c && c.hidden === false)
+        return columns.filter(c =>
+            c && c.hidden === false && !hiddenColumnFields.value.has(c.field)
+        )
     })
-    const columnSpan = computed(() => visibleColumns.value.length + (showCommandColumn.value ? 1 : 0))
+    const columnSpan = computed(() => {
+        const checkboxCol = props.showCheckbox ? 1 : 0
+        return visibleColumns.value.length + (showCommandColumn.value ? 1 : 0) + checkboxCol
+    })
+
+    const pageSizeOptions = computed<number[]>(() => {
+        const list = parsedPageList.value
+        if (!list.length) return []
+        const base = Number(props.pageSize)
+        if (!Number.isFinite(base) || base <= 0 || list.includes(base)) return list
+        return [...list, base].sort((a, b) => a - b)
+    })
 
     const pagination = computed(() => props.pagination !== false)
     const totalPages = computed(() => Math.max(0, Math.ceil(rowsCount.value / pageSize.value)))
@@ -480,7 +566,51 @@
     const cancelText = computed(() => $.localeMessages.value['cancel'])
 
 
-    const hasTopTools = computed(() => props.toolItemPosition == 'Top' && (visibleToolItems.value?.length > 0))
+    const isToolPosition = (pos: string) =>
+        String(props.toolItemPosition || 'Top').toLowerCase() === pos.toLowerCase()
+    const hasTopTools = computed(() => isToolPosition('Top') && (visibleToolItems.value?.length > 0))
+    const hasBottomTools = computed(() => isToolPosition('Bottom') && (visibleToolItems.value?.length > 0))
+
+    const hasHeight = computed(() => props.height != null && props.height !== '')
+    const containerStyle = computed(() => {
+        if (!hasHeight.value) return undefined
+        const raw = props.height as number | string
+        const v = typeof raw === 'number' || /^\d+(\.\d+)?$/.test(String(raw))
+            ? `${raw}px`
+            : String(raw)
+        return { height: v, display: 'flex', flexDirection: 'column', overflow: 'hidden' }
+    })
+    const tableWrapperStyle = computed(() =>
+        hasHeight.value ? { flex: '1 1 auto', minHeight: 0, overflow: 'auto' } : undefined
+    )
+
+    const queryModeLower = computed(() => String(props.queryMode ?? 'Dialog').toLowerCase())
+    const isQueryPanel = computed(() =>
+        queryModeLower.value === 'panel' || queryModeLower.value === 'panelauto'
+    )
+    const isQueryFuzzy = computed(() => queryModeLower.value === 'fuzzy')
+    const isQueryDialog = computed(() =>
+        queryModeLower.value === 'dialog' || queryModeLower.value === ''
+    )
+
+    const parsedPageList = computed<number[]>(() => {
+        const raw = props.pageList as unknown
+        let arr: unknown[] = []
+        if (Array.isArray(raw)) arr = raw
+        else if (typeof raw === 'string' && raw.trim()) {
+            try {
+                const j = JSON.parse(raw)
+                if (Array.isArray(j)) arr = j
+            } catch {
+                arr = raw.split(',').map(s => s.trim())
+            }
+        }
+        return arr.map(Number).filter(n => Number.isFinite(n) && n > 0)
+    })
+
+    const hiddenColumnList = computed(() =>
+        columns.filter(c => c && c.field && hiddenColumnFields.value.has(c.field))
+    )
     const tableClasses = computed(() => ([
         'table',
         'bootstrap-datagrid',
@@ -496,7 +626,11 @@
 
     onMounted(async () => {
         const instance = getCurrentInstance()
-        load(true)
+        if (queryModeLower.value === 'panelauto') {
+            runQuery()
+        } else {
+            load(true)
+        }
     })
 
     const isFlow = computed(() => {
@@ -510,7 +644,12 @@
     })
 
     async function load(init) {
-        showLoading(); // <--- 1. 開始時顯示 Loading
+        if (init && props.alwaysClose && !hasQueried.value) {
+            rows.splice(0, rows.length)
+            rowsCount.value = 0
+            return
+        }
+        showLoading(); 
 
         try {
 
@@ -569,7 +708,7 @@
                 const { loadData: loadRemoteData } = dataUtils(props.remoteName);
 
                 const flowWhereItems = getFlowWhereItems(flowParam)
-                if (isFlow.value & flowWhereItems) {
+                if (isFlow.value && flowWhereItems) {
                     //flow
                     loadParam.whereItems = flowWhereItems
                 }
@@ -587,7 +726,14 @@
                             })
                         }
                     })
+                    Object.entries(autoQueryValues.value).forEach(([field, value]) => {
+                        if (value === undefined || value === null || value === '') return
+                        whereItems.push({ field, operator: '%', value })
+                    })
                     loadParam.whereItems = whereItems
+                    if (props.whereStr) {
+                        loadParam.whereStr = props.whereStr
+                    }
                 }
                 if (props.onBeforeLoad && $.invoke(props.onBeforeLoad, loadParam) === false) {
                     return
@@ -601,7 +747,7 @@
         } catch (e) {
             $.showError(e); 
         } finally {
-            hideLoading(); // 關閉 Loading
+            hideLoading(); 
         }
     }
 
@@ -659,6 +805,7 @@
         if (data.footer) {
             totalRow.value = data.footer[0]
         }
+        checkedRows.value = new Set()
         if (props.onLoad) {
             $.invoke(props.onLoad, data)
         }
@@ -667,6 +814,7 @@
     watch(sort, load)
     watch(order, load)
     watch(currentPage, load)
+    watch(pageSize, load)
 
     function applyMappedToGrid(mapped) {
         const buf = editRow.value
@@ -681,6 +829,91 @@
         if (page >= 1 && page <= totalPages.value) {
             currentPage.value = page
         }
+    }
+
+    function changePageSize(size: number | string) {
+        const n = Number(size)
+        if (!Number.isFinite(n) || n <= 0) return
+        if (n === pageSize.value) return
+        pageSize.value = n
+        currentPage.value = 1
+        load()
+    }
+
+    function jumpToPage() {
+        const n = parseInt(pageJumpInput.value, 10)
+        if (!Number.isFinite(n)) {
+            pageJumpInput.value = ''
+            return
+        }
+        const target = Math.min(Math.max(1, n), totalPages.value || 1)
+        pageJumpInput.value = ''
+        if (target !== currentPage.value) changePage(target)
+    }
+
+    function toggleCheck(index: number) {
+        const next = new Set(checkedRows.value)
+        if (next.has(index)) next.delete(index)
+        else next.add(index)
+        checkedRows.value = next
+    }
+    const isRowChecked = (index: number) => checkedRows.value.has(index)
+    const allRowsChecked = computed(() =>
+        rows.length > 0 && rows.every((_, i) => checkedRows.value.has(i))
+    )
+    function toggleCheckAll() {
+        if (allRowsChecked.value) {
+            checkedRows.value = new Set()
+        } else {
+            checkedRows.value = new Set(rows.map((_, i) => i))
+        }
+    }
+
+    function hideColumn(field: string) {
+        if (!field) return
+        const next = new Set(hiddenColumnFields.value)
+        next.add(field)
+        hiddenColumnFields.value = next
+    }
+
+    let autoQueryTimer: ReturnType<typeof setTimeout> | null = null
+    function onAutoQueryInput(field: string, value: unknown) {
+        autoQueryValues.value = { ...autoQueryValues.value, [field]: value }
+        if (autoQueryTimer) clearTimeout(autoQueryTimer)
+        autoQueryTimer = setTimeout(() => {
+            currentPage.value = 1
+            hasQueried.value = true
+            load()
+        }, 350)
+    }
+
+    function runQuery() {
+        currentPage.value = 1
+        hasQueried.value = true
+        load()
+    }
+
+    function runFuzzyQuery() {
+        const text = fuzzyText.value
+        const next: Record<string, unknown> = {}
+        ;(props.queryColumns || []).forEach((qc: any) => {
+            if (qc?.field) next[qc.field] = text
+        })
+        queryValues.value = next
+        currentPage.value = 1
+        hasQueried.value = true
+        load()
+    }
+
+    function restoreColumn(field: string) {
+        if (!field) return
+        const next = new Set(hiddenColumnFields.value)
+        next.delete(field)
+        hiddenColumnFields.value = next
+    }
+    function restoreAllColumns() {
+        hiddenColumnFields.value = new Set()
+        showHiddenColsMenu.value = false
     }
 
     function openForm(row, status, flowRow) {
@@ -848,6 +1081,9 @@
         }
         else {
             select(index)
+            if (props.showCheckbox && props.checkOnSelect && index >= 0) {
+                toggleCheck(index)
+            }
             if (col.format === 'drilldown') {
                 triggerDrilldown(rows[index]);
             }
@@ -1189,8 +1425,18 @@
         return {}
     }
 
+    function normalizeQueryMode (v: unknown) {
+        return String(v ?? 'Dialog').toLowerCase()
+    }
+
     function openQuery() {
-        queryValues.value = {}
+        const mode = normalizeQueryMode(props.queryMode)
+        if (mode !== 'dialog' && mode !== '') {
+            console.warn(`[DataGrid] queryMode='${props.queryMode}' is not yet implemented; falling back to Dialog.`)
+        }
+        if (props.alwaysClose) {
+            queryValues.value = {}
+        }
         const id = 'queryModal'
         const el = document.getElementById(id)
         if (!el) return console.warn(`[DataGrid] Cannot find #${id}`)
@@ -1453,5 +1699,47 @@
 
     .pull-right {
         float: right;
+    }
+
+    .dg-autoquery-row th {
+        background: #fafafa;
+        padding: 4px 6px !important;
+        font-weight: normal;
+    }
+
+    .dg-pagesize {
+        width: auto;
+        min-width: 4.5rem;
+    }
+
+    .dg-pagejump {
+        width: 4.5rem;
+    }
+
+    .dg-hide-col {
+        opacity: 0.45;
+    }
+
+    .dg-hide-col:hover {
+        opacity: 1;
+    }
+
+    th.rowcheck,
+    td.rowcheck {
+        text-align: center;
+        width: 32px;
+    }
+
+    .dg-hidden-cols-menu {
+        max-height: 240px;
+        overflow-y: auto;
+    }
+
+    .dg-query-panel {
+        background: #f8f9fa;
+    }
+
+    .table-responsive {
+        position: relative;
     }
 </style>

@@ -11,7 +11,7 @@
         v-else-if="part.type === 'year'"
         class="form-control form-select dateselectyear"
         style="padding:0;"
-        :disabled="readonly"
+        :disabled="isDisabled"
         v-model="yearSel"
         @change="onAnyChange"
       >
@@ -22,7 +22,7 @@
         v-else-if="part.type === 'month'"
         class="form-control form-select dateselectmonth"
         style="padding:0;"
-        :disabled="readonly"
+        :disabled="isDisabled"
         v-model="monthSel"
         @change="onMonthChange"
       >
@@ -33,7 +33,7 @@
         v-else-if="part.type === 'day'"
         class="form-control form-select dateselectday"
         style="padding:0;"
-        :disabled="readonly"
+        :disabled="isDisabled"
         v-model="daySel"
         @change="onAnyChange"
       >
@@ -46,6 +46,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { validate as runValidate } from '@/composables/useValidator'
 
 
 const props = defineProps({
@@ -53,13 +54,20 @@ const props = defineProps({
   format: { type: String, default: 'YYYY年MM月DD日' },
   yearRangeFrom: { type: Number, default: -50 },
   yearRangeTo:   { type: Number, default: 10 },
-  year:  { type: [Number, String], default: '' }, // 初始年（直接顯示用，無轉換）
+  year:  { type: [Number, String], default: '' }, 
   month: { type: [Number, String], default: '' },
   day:   { type: [Number, String], default: '' },
   readonly: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
+  required: { type: Boolean, default: false },
+  validType: { type: String, default: '' },
+  customRules: { type: Object, default: undefined },
   autoToday: { type: Boolean, default: true },
 })
-const emit = defineEmits(['update:modelValue','change'])
+const emit = defineEmits(['update:modelValue','change','validate'])
+
+const isDisabled = computed(() => props.disabled || props.readonly)
+const errorMessage = ref('')
 
 
 const state = reactive({ parts: [] })
@@ -122,7 +130,6 @@ function buildParts(normalizedFmt) {
 
 
 function buildYearItems(){
-  // 不做西元/民國換算：直接以 props.year 或今天為參考
   const baseY = props.year ? toInt(props.year, today.getFullYear()) : today.getFullYear()
   const start = Math.max(0, baseY + props.yearRangeFrom)
   const end   = baseY + props.yearRangeTo
@@ -181,7 +188,22 @@ function onAnyChange(){
   const v = composedValue.value
   emit('update:modelValue', v)
   emit('change', v)
+  validate()
 }
+
+function validate () {
+  let msg = ''
+  if (props.required && !isComplete.value) {
+    msg = 'required'
+  } else if (props.validType && composedValue.value) {
+    msg = runValidate(props.validType, composedValue.value, props.customRules)
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
+}
+
+defineExpose({ validate })
 
 /* --- 初始化 --- */
 function loadDefaults(){

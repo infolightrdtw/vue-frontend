@@ -4,50 +4,89 @@
     class="form-control"
     :rows="rows"
     :placeholder="prompt || ''"
-    :maxlength="maxLength && maxLength > 0 ? maxLength : undefined"
-    :readonly="readonly"
-    :value="localValue ?? ''"
+    :maxlength="effectiveMaxLength"
+    :disabled="disabled || readonly"
+    :value="innerValue"
     @input="onInput"
     @change="onChange"
+    @blur="handleBlur"
   />
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref } from 'vue'
+import { validate as runValidate, type ValidatorRuleMap } from '@/composables/useValidator'
 
-const props = withDefaults(defineProps<{
+defineOptions({ name: 'TextareaEditor' })
+
+interface Props {
   modelValue?: string | null
-  maxLength?: number | null  
-  rows?: number               
-  prompt?: string              
-  readonly?: boolean           
-}>(), {
+  maxLength?: number | null
+  rows?: number
+  prompt?: string
+  readonly?: boolean
+  disabled?: boolean
+  required?: boolean
+  validType?: string
+  customRules?: ValidatorRuleMap
+}
+
+const props = withDefaults(defineProps<Props>(), {
   modelValue: null,
   maxLength: null,
   rows: 3,
   prompt: '',
-  readonly: false
+  readonly: false,
+  disabled: false,
+  required: false,
+  validType: '',
+  customRules: undefined
 })
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', v: string | null): void
-  (e: 'change', v: string | null): void
+  (e: 'update:modelValue', v: string): void
+  (e: 'change', v: string): void
+  (e: 'blur', event: FocusEvent): void
+  (e: 'validate', error: string): void
 }>()
 
 const el = ref<HTMLTextAreaElement | null>(null)
-const localValue = ref<string | null>(props.modelValue)
+const errorMessage = ref('')
 
-watch(() => props.modelValue, v => { localValue.value = v })
+const innerValue = computed(() =>
+  props.modelValue == null ? '' : String(props.modelValue)
+)
 
-function onInput(e: Event) {
+const effectiveMaxLength = computed(() =>
+  props.maxLength && props.maxLength > 0 ? props.maxLength : null
+)
+
+function onInput (e: Event) {
   const v = (e.target as HTMLTextAreaElement).value ?? ''
-  localValue.value = v
   emit('update:modelValue', v)
 }
-function onChange() {
-  emit('change', localValue.value ?? '')
-}
-</script>
 
-<style scoped>
-</style>
+function onChange () {
+  emit('change', innerValue.value)
+}
+
+function handleBlur (e: FocusEvent) {
+  emit('blur', e)
+  validate()
+}
+
+function validate (): string {
+  const value = innerValue.value
+  let msg = ''
+  if (props.required && value.trim() === '') {
+    msg = 'required'
+  } else if (props.validType) {
+    msg = runValidate(props.validType, value, props.customRules)
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
+}
+
+defineExpose({ validate })
+</script>

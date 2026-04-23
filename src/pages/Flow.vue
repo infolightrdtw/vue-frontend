@@ -235,6 +235,10 @@
             const tabItem = tabItems[i]
             if (tabItem.type == type) {
                 tabItem.count = count
+                if(type == 'ToDo'){
+                    window.top.postMessage({ method: 'refreshCount', count })
+                }
+
                 break
             }
         }

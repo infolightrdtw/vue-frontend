@@ -119,6 +119,23 @@ export default function (rName: string = '') {
         return result
     }
 
+    async function removeLock(keys: string, rows: object[]) {
+        if (!remoteName || !keys || !Array.isArray(rows) || rows.length === 0) return
+        const lockKeys = keys.split(',')
+        const lockRows = rows.map((row: any) => {
+            const lockRow: Record<string, unknown> = {}
+            for (const k of lockKeys) lockRow[k] = row?.[k]
+            return lockRow
+        })
+        const param = {
+            mode: 'removeLock',
+            module,
+            command,
+            rows: JSON.stringify(lockRows)
+        }
+        await axios.post(dataApiUrl, param)
+    }
+
     async function exportFile(type: string, id: string, exportParam: object) {
         const param = {
             mode: 'exportFile',
@@ -141,6 +158,7 @@ export default function (rName: string = '') {
         loadDetailData,
         updateData,
         callMethod,
+        removeLock,
         uploadFile,
         uploadFiles,
         downloadFile,

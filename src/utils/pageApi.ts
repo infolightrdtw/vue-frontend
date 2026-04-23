@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, Ref, toRef } from 'vue'
+import { ref, computed, onMounted, onBeforeMount, Ref, toRef } from 'vue'
 import dataUtils from './dataApi'
 import axios from 'axios'
 
@@ -53,6 +53,13 @@ export default function (funcs: object, controls: object, addOn: Ref) {
         }
     })
 
+    onBeforeMount(async () => {
+        //load language and security
+        //console.log(window.location.href)
+
+
+    })
+
     function getMessage(name: string) {
         const names = name.split(' ')
         let msg = names.map(n => localeMessages.value[KEYWORDS[n] || n] || n).join('')
@@ -91,12 +98,18 @@ export default function (funcs: object, controls: object, addOn: Ref) {
         return e.response?.data?.error || e.responseText || e.message || e
     }
 
-    function showError(e: any, isLocale: boolean = false) {
+    async function showError(e: any, isLocale: boolean = false) {
         let text = getErrorText(e)
-        if (isLocale && text.split(' ').length == 1) {
-            text = getMessage(text)
+        if (text == 'Timeout') {
+            await alertMessage('timeoutLogon', 'danger')
+            window.location.href = `../../logon${window.top.location.search}`
         }
-        alert(text, 'danger')
+        else {
+            if (isLocale && text.split(' ').length == 1) {
+                text = getMessage(text)
+            }
+            alert(text, 'danger')
+        }
     }
 
     async function confirm(title: string, type: 'warning' | 'danger' | 'info') {
