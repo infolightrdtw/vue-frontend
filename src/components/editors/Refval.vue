@@ -156,6 +156,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import dataUtils from '@/utils/dataApi'
 import pageUtils from '@/utils/pageApi'
+import { validate as runValidate, type ValidatorRuleMap } from '@/composables/useValidator'
 
 type Column = {
   title?: string
@@ -198,6 +199,10 @@ const props = withDefaults(defineProps<{
   panelTitle?: string
   selectOnly?: boolean
   readonly?: boolean
+  disabled?: boolean
+  required?: boolean
+  validType?: string
+  customRules?: ValidatorRuleMap
   fit?: boolean
   placeholder?: string
 }>(), {
@@ -215,6 +220,10 @@ const props = withDefaults(defineProps<{
   panelTitle: '',
   selectOnly: true,
   readonly: false,
+  disabled: false,
+  required: false,
+  validType: '',
+  customRules: undefined,
   fit: false,
   placeholder: '',
 })
@@ -226,6 +235,7 @@ const emit = defineEmits<{
   (e: 'apply', mapped: Record<string, any>, row: Record<string, any>): void
   (e: 'focus'): void
   (e: 'error', message: string): void
+  (e: 'validate', error: string): void
 }>()
 const $this = pageUtils({}, {})
 const lm = computed(() => $this.localeMessages?.value || {})
@@ -273,30 +283,24 @@ const localWhereItems = ref<WhereItem[] | null>(null)
 const forceReadonly = ref<boolean | null>(null)     
 
 const inputType = 'text'
-const isReadonly = computed(() => forceReadonly.value === null ? !!props.readonly : !!forceReadonly.value)
-
-function parseRemote(remoteName: string) {
-  const seg = (remoteName || '').split('.')
-  return { module: seg[0] || '', command: seg[1] || '' }
-}
+const isReadonly = computed(() => {
+  if (forceReadonly.value !== null) return !!forceReadonly.value
+  return !!(props.readonly || props.disabled)
+})
+const errorMessage = ref('')
 
 async function hydrateDisplay() {
   if (props.modelValue === undefined || props.modelValue === null || props.modelValue === '') {
     textValue.value = ''
     return
   }
-
   try {
-    const { module, command } = parseRemote(props.remoteName)
     const { loadData } = dataUtils(props.remoteName)
-    const body: any = {
-      mode: 'getDataset',
-      module,
-      command,
-      remoteName: props.remoteName,
+    const body = {
+      total: false,
+      whereStr: '',
       whereItems: [{ field: props.valueField, operator: '=', value: props.modelValue }]
     }
-
     const r: any = await loadData(body)
     const rows: any[] = Array.isArray(r) ? r : (Array.isArray(r?.rows) ? r.rows : [])
     const row = rows.find(x => x?.[props.valueField] == props.modelValue)
@@ -406,6 +410,7 @@ async function onBlurInput(e: FocusEvent) {
     textValue.value = ''
     if (changed) emit('select', {} as any)
   }
+  validate()
 }
 function onInput(ev: Event) {
   tempChanged.value = true
@@ -482,6 +487,7 @@ function selectRow (row: any) {
 
   doColumnMatch(row)
   closePicker()
+  validate()
 }
 
 function doColumnMatch(row?: Record<string, any> | null) {
@@ -611,13 +617,31 @@ function setReadonly(value: boolean) {
 }
 
 
+function validate (): string {
+  const v = props.modelValue
+  let msg = ''
+  if (props.required && (v === null || v === undefined || v === '')) {
+    msg = 'required'
+  } else if (props.validType && v !== '' && v != null) {
+    msg = runValidate(props.validType, String(v), props.customRules)
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
+}
+
 defineExpose({
   getValue,
   setValue,
   setWhere,
   readonly: setReadonly,
   options: () => optionsObj.value,
-  openPicker
+  openPicker,
+  validate,
+  getText:       () => textValue.value || '',
+  doColumnMatch: (row?: Record<string, any> | null) => doColumnMatch(row),
+  load:          () => doSearch(),
+  getWhereItems: () => buildWhereItems()
 })
 
 function goPage(p: number) {

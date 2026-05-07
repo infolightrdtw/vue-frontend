@@ -51,7 +51,7 @@ const props = defineProps({
   onSelect: { type: Function, default: null }
 })
 
-const emit = defineEmits(['update:modelValue', 'change', 'validate'])
+const emit = defineEmits(['update:modelValue', 'change', 'validate', 'blur'])
 const inputRef = ref(null)
 const errorMessage = ref('')
 let fp = null

@@ -1,71 +1,64 @@
 <template>
-  <div 
-    v-if="visible" 
-    class="modal fade show d-block bootstrap-promptdialog" 
-    tabindex="-1" 
-    role="dialog" 
-    style="background: rgba(0,0,0,0.5); overflow-y: auto;"
+  <!-- mode='panel' renders inline (no modal/backdrop); default = modal dialog -->
+  <div
+    v-if="visible"
+    class="bootstrap-promptdialog"
+    :class="isPanel ? 'is-panel' : 'modal fade show d-block'"
+    :style="isPanel ? null : 'background: rgba(0,0,0,0.5); overflow-y: auto;'"
+    :tabindex="isPanel ? undefined : -1"
+    :role="isPanel ? undefined : 'dialog'"
   >
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        
-        <div class="modal-header">
+    <div :class="isPanel ? 'panel-body' : 'modal-dialog'" :role="isPanel ? undefined : 'document'">
+      <div :class="isPanel ? 'card' : 'modal-content'">
+
+        <div :class="isPanel ? 'card-header' : 'modal-header'">
           <h5 class="modal-title">{{ title }}</h5>
-          <button 
-            type="button" 
-            class="close btn-close" 
-            @click="cancel" 
+          <button
+            v-if="!isPanel"
+            type="button"
+            class="close btn-close"
+            @click="cancel"
             aria-label="Close"
           >
             <span aria-hidden="true" v-if="!isBootstrap5">&times;</span>
           </button>
         </div>
 
-        <div class="modal-body">
+        <div :class="isPanel ? 'card-body' : 'modal-body'">
           <div class="row">
             <template v-for="(col, index) in columns" :key="index">
               <div v-if="col.newRow" class="w-100"></div>
-              
+
               <div :class="getColumnWrapperClass(col.span)">
                 <div class="form-group row mb-3 align-items-center">
-                  
-                  <label class="col-sm-4 col-form-label text-sm-right text-muted">
-                    {{ col.title }}
-                  </label>
-                  
+                  <label class="col-sm-4 col-form-label text-sm-right text-muted">{{ col.title }}</label>
                   <div class="col-sm-8">
-                    <input 
-                      v-if="col.editor?.type !== 'checkbox'" 
-                      v-model="formData[col.field]" 
+                    <input
+                      v-if="col.editor?.type !== 'checkbox'"
+                      v-model="formData[col.field]"
                       :type="col.editor?.type || 'text'"
-                      class="form-control form-field" 
+                      class="form-control form-field"
                       :readonly="col.editor?.readonly"
                     />
-                    
                     <div v-else class="form-check pt-1">
-                      <input 
-                        v-model="formData[col.field]" 
+                      <input
+                        v-model="formData[col.field]"
                         type="checkbox"
-                        class="form-check-input form-field" 
+                        class="form-check-input form-field"
                         :disabled="col.editor?.readonly"
                         :id="'check_' + col.field"
                       />
                     </div>
                   </div>
-                  
-                </div> 
+                </div>
               </div>
             </template>
           </div>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary form-ok" @click="ok">
-            {{ okText }}
-          </button>
-          <button type="button" class="btn btn-secondary form-cancel" @click="cancel">
-            {{ cancelText }}
-          </button>
+        <div :class="isPanel ? 'card-footer text-end' : 'modal-footer'">
+          <button type="button" class="btn btn-primary form-ok" @click="ok">{{ okText }}</button>
+          <button type="button" class="btn btn-secondary form-cancel" @click="cancel">{{ cancelText }}</button>
         </div>
 
       </div>
@@ -86,9 +79,11 @@ const props = defineProps({
   isBootstrap5: { type: Boolean, default: true }
 });
 
-const visible = ref(false);
+const visible = ref(props.mode === 'panel');
 const formData = reactive({});
 const callbacks = ref({ onOK: null, onCancel: null });
+
+const isPanel = computed(() => String(props.mode || '').toLowerCase() === 'panel');
 
 const getColumnWrapperClass = computed(() => (span = 1) => {
   const baseColWidth = 12 / props.horizontalColumnsCount;

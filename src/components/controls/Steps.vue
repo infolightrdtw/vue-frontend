@@ -131,10 +131,16 @@ const submit = () => {
   }
 };
 
+function resize() { /* no-op for Vue: layout is reactive*/ }
+
+function getStepIndex() { return activeIndex.value }
+
 defineExpose({
   next,
   prev,
   submit,
+  resize,
+  getStepIndex,
   activeIndex
 });
 </script>

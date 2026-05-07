@@ -7,40 +7,44 @@
         class="form-control bootstrap-mauiscan"
         :id="id"
         :value="modelValue"
-        :disabled="readonly"
+        :disabled="isDisabled"
         @input="handleInput"
+        @blur="handleBlur"
       />
 
-      <span v-if="isAndroidApp" class="input-group-btn">
-        <button
-          class="btn btn-default form-btn glyphicon glyphicon-qrcode"
-          style="top: 0"
-          type="button"
-          :disabled="readonly"
-          @click="startAndroidScan"
-        ></button>
-      </span>
+      <button
+        v-if="isAndroidApp"
+        class="btn btn-outline-secondary"
+        type="button"
+        :disabled="isDisabled"
+        title="Scan"
+        @click="startAndroidScan"
+      >
+        <i class="bi bi-qr-code"></i>
+      </button>
 
-      <span v-else class="input-group-btn" :id="'scanText_' + id">
+      <template v-else>
         <button
           v-show="scanning"
-          class="btn btn-default form-btn glyphicon glyphicon-stop"
-          style="top: 0"
+          class="btn btn-outline-secondary"
           type="button"
           title="停止掃描"
-          :disabled="readonly"
+          :disabled="isDisabled"
           @click="stopWebScan"
-        ></button>
+        >
+          <i class="bi bi-stop-fill"></i>
+        </button>
         <button
           v-show="!scanning"
-          class="btn btn-default form-btn glyphicon glyphicon-qrcode"
-          style="top: 0"
+          class="btn btn-outline-secondary"
           type="button"
           title="開始掃描"
-          :disabled="readonly"
+          :disabled="isDisabled"
           @click="startWebScan"
-        ></button>
-      </span>
+        >
+          <i class="bi bi-qr-code"></i>
+        </button>
+      </template>
     </div>
 
     <div
@@ -52,18 +56,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { validate as runValidate } from '@/composables/useValidator'
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
   id: { type: String, required: true },
   readonly: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
+  required: { type: Boolean, default: false },
+  validType: { type: String, default: '' },
+  customRules: { type: Object, default: undefined },
   onScan: { type: [Function, String], default: null },
   iosTimeoutMs: { type: Number, default: 15000 },
   qrboxSize: { type: Number, default: 180 }
 });
 
-const emit = defineEmits(['update:modelValue', 'change']);
+const emit = defineEmits(['update:modelValue', 'change', 'blur', 'validate']);
+
+const isDisabled = computed(() => props.disabled || props.readonly)
+const errorMessage = ref('')
 
 const inputRef = ref(null);
 const isAndroidApp = ref(false);
@@ -95,6 +107,24 @@ const handleInput = (event) => {
   emit('update:modelValue', event.target.value);
 };
 
+function handleBlur (e) {
+  emit('blur', e)
+  validate()
+}
+
+function validate () {
+  const v = props.modelValue
+  let msg = ''
+  if (props.required && (v === null || v === undefined || v === '')) {
+    msg = 'required'
+  } else if (props.validType && v !== '' && v != null) {
+    msg = runValidate(props.validType, String(v), props.customRules)
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
+}
+
 const processScanResult = (rawValue) => {
   let finalValue = rawValue;
 
@@ -112,7 +142,7 @@ const processScanResult = (rawValue) => {
 
 
 const startAndroidScan = () => {
-  if (props.readonly) return;
+  if (isDisabled.value) return;
   try {
     const paramStr = JSON.stringify({ 
       frameId: window.location.href, 
@@ -125,7 +155,7 @@ const startAndroidScan = () => {
 };
 
 const startWebScan = async () => {
-  if (props.readonly || scanning.value) return;
+  if (isDisabled.value || scanning.value) return;
   scanning.value = true;
 
   await nextTick();
@@ -268,6 +298,8 @@ const registerGlobalMauiCallback = () => {
     };
   }
 };
+
+defineExpose({ validate, startAndroidScan, startWebScan, stopWebScan })
 </script>
 
 <style scoped>

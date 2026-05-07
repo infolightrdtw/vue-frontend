@@ -96,7 +96,7 @@
 
               <div>
                   <button type="button" class="btn btn-primary options-ok me-2" @click="confirmMove" :disabled="loading">確定</button>
-                  <button type="button" class="btn btn-default" @click="closeModal">取消</button>
+                  <button type="button" class="btn btn-secondary" @click="closeModal">取消</button>
               </div>
             </div>
           </div>
@@ -131,6 +131,8 @@ const props = defineProps({
   targetDataGrid: { type: String, required: true },
   keyFields: { type: Array, default: () => [] },
   columnMatchs: { type: Array, default: () => [] },
+ 
+  validateXss: { type: Boolean, default: false }
 });
 
 const $ = props.root;
@@ -219,9 +221,7 @@ async function fetchData() {
     };
     
     const parsedWhere = getParsedWhereItems();
-    if (parsedWhere) {
-      param.whereItems = JSON.stringify(parsedWhere);
-    }
+    param.whereItems = Array.isArray(parsedWhere) ? parsedWhere : [];
 
     const data = await apiLoadData(param);
     const resultRows = Array.isArray(data) ? data : (data?.rows || []);
@@ -359,9 +359,8 @@ const addAll = async () => {
   try {
     const { loadData: apiLoadData } = dataUtils(props.remoteName);
     const param: any = { page: 1, rows: -1 };
-    
     const parsedWhere = getParsedWhereItems();
-    if (parsedWhere) param.whereItems = JSON.stringify(parsedWhere);
+    param.whereItems = Array.isArray(parsedWhere) ? parsedWhere : [];
     
     const data = await apiLoadData(param);
     const rows = Array.isArray(data) ? data : (data?.rows || []);

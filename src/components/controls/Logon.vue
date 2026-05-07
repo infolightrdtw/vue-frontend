@@ -1,20 +1,16 @@
 <template>
   <div>
-    <div class="modal fade bootstrap-logon" :class="{ in: isVisible, show: isVisible }" :style="{ display: isVisible ? 'block' : 'none' }" tabindex="-1" role="dialog">
+    <div class="modal fade bootstrap-logon" :class="{ show: isVisible }" :style="{ display: isVisible ? 'block' : 'none' }" tabindex="-1" role="dialog">
       <div class="modal-dialog">
         <div class="modal-content shadow">
           <div class="modal-header">
-            <button type="button" class="close btn-close" @click="cancel" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
             <h4 class="modal-title">{{ title || localeMessages.logon }}</h4>
+            <button type="button" class="btn-close" @click="cancel" aria-label="Close"></button>
           </div>
-          
+
           <div class="modal-body">
-            <div v-if="errorMessage" class="alert alert-danger" style="margin-bottom: 15px;">
-              <button type="button" class="close" @click="errorMessage = ''" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+            <div v-if="errorMessage" class="alert alert-danger alert-dismissible" style="margin-bottom: 15px;">
+              <button type="button" class="btn-close" @click="errorMessage = ''" aria-label="Close"></button>
               {{ errorMessage }}
             </div>
 
@@ -48,13 +44,13 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-primary form-logon" @click="doLogon">{{ localeMessages.logon }}</button>
-            <button type="button" class="btn btn-default form-cancel" @click="cancel">{{ localeMessages.cancel }}</button>
+            <button type="button" class="btn btn-secondary form-cancel" @click="cancel">{{ localeMessages.cancel }}</button>
           </div>
         </div>
       </div>
     </div>
-    
-    <div v-if="isVisible" class="modal-backdrop fade in"></div>
+
+    <div v-if="isVisible" class="modal-backdrop fade show"></div>
   </div>
 </template>
 

@@ -47,6 +47,8 @@ const props = defineProps({
   borderColor: { type: [String, Boolean], default: '#ddd' },
   onBeforeLoad: { type: [String, Function], default: null },
   onNodeSelected: { type: [String, Function], default: null },
+  onUpdate: { type: [String, Function], default: null },
+  onRenderNode: { type: [String, Function], default: null },
   nodeIcon: { type: String, default: '' }
 });
 
@@ -158,7 +160,26 @@ const handleAdd = () => {
   console.log("新增");
 };
 
-defineExpose({ loadTreeData, options: props, rawData });
+defineExpose({
+  loadTreeData,
+
+  options: () => props,
+  rawData,
+
+  load:        () => loadTreeData(),
+  loadData:    (data) => { rawData.value = Array.isArray(data) ? data : (data?.rows || []); },
+  setWhere:    (whereStr) => loadTreeData(whereStr),
+  getSelected: () => rawData.value.find(r => r[props.idField] === activeNodeId.value) || null,
+  insert_row:  () => {
+    if (props.onUpdate) executeRootMethod(props.onUpdate, null, 'insert');
+  },
+  delete_row:  () => {
+    if (activeNodeId.value == null) return;
+    rawData.value = rawData.value.filter(r => r[props.idField] !== activeNodeId.value);
+    activeNodeId.value = null;
+  },
+  renderNode:  (node) => (typeof props.onRenderNode === 'function' ? props.onRenderNode(node) : node)
+});
 onMounted(() => loadTreeData());
 </script>
 

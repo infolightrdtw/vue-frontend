@@ -10,7 +10,7 @@
       @mouseleave="stopDrawing"
     />
     <div class="mt-2">
-      <button class="btn btn-sm btn-outline-secondary me-2" type="button" @click="clear">清除</button>
+      <button class="btn btn-sm btn-outline-secondary me-2" type="button" :disabled="isDisabled" @click="clear">清除</button>
       <button
         v-if="canReplay && history.length"
         class="btn btn-sm btn-outline-secondary"
@@ -24,7 +24,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { validate as runValidate } from '@/composables/useValidator'
 
 const props = defineProps({
   modelValue: String,
@@ -32,10 +33,18 @@ const props = defineProps({
   color: { type: String, default: '#000000' },
   background: { type: String, default: '#ffffff' },
   canReplay: { type: Boolean, default: false },
+  readonly: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
+  required: { type: Boolean, default: false },
+  validType: { type: String, default: '' },
+  customRules: { type: Object, default: undefined },
   onChange: Function
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'validate'])
+
+const isDisabled = computed(() => props.disabled || props.readonly)
+const errorMessage = ref('')
 
 const canvasRef = ref(null)
 const ctx = ref(null)
@@ -91,6 +100,7 @@ function drawTouch(e) {
 }
 
 function startDrawing(e) {
+  if (isDisabled.value) return
   drawing.value = true
   const pos = getMousePos(e)
   lastPos = pos
@@ -99,7 +109,7 @@ function startDrawing(e) {
 }
 
 function draw(e) {
-  if (!drawing.value) return
+  if (!drawing.value || isDisabled.value) return
   const pos = getMousePos(e)
   ctx.value.lineTo(pos.x, pos.y)
   ctx.value.stroke()
@@ -115,13 +125,45 @@ function stopDrawing() {
     history.value.push(dataUrl)
     emit('update:modelValue', dataUrl)
     props.onChange?.(dataUrl)
+    validate()
   }
 }
 
 function clear() {
+  if (isDisabled.value) return
   initCanvasStyle()
   emit('update:modelValue', '')
+  validate()
 }
+
+function validate () {
+  const v = props.modelValue || ''
+  let msg = ''
+  if (props.required && String(v).trim() === '') {
+    msg = 'required'
+  } else if (props.validType && v) {
+    msg = runValidate(props.validType, String(v), props.customRules)
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
+}
+
+defineExpose({
+  validate,
+  clear,
+  reset: clear,
+  replay,
+  getUrl:   () => canvasRef.value?.toDataURL?.() ?? '',
+  getValue: () => props.modelValue ?? '',
+  setValue: (v) => { emit('update:modelValue', v ?? '') },
+  options:  () => ({
+    height: props.height,
+    color: props.color,
+    background: props.background,
+    canReplay: props.canReplay
+  })
+})
 
 function getMousePos(e) {
   const canvas = canvasRef.value
@@ -146,13 +188,14 @@ function replay() {
   }
 }
 
-const canvasStyle = {
+const canvasStyle = computed(() => ({
   width: '100%',
   border: '1px solid #ccc',
   backgroundColor: props.background,
-  cursor: 'crosshair',
-  touchAction: 'none' 
-}
+  cursor: isDisabled.value ? 'not-allowed' : 'crosshair',
+  touchAction: 'none',
+  pointerEvents: isDisabled.value ? 'none' : 'auto'
+}))
 </script>
 
 <style scoped>

@@ -401,6 +401,9 @@
 
     const isReadonly = ref(false)
 
+    const localWhereStr = ref<string | null>(null)
+    const isHidden = ref(false)
+
     const visibleColumns = computed(() => {
         return columns.filter(c =>
             c && c.hidden === false && !hiddenColumnFields.value.has(c.field)
@@ -573,12 +576,15 @@
 
     const hasHeight = computed(() => props.height != null && props.height !== '')
     const containerStyle = computed(() => {
-        if (!hasHeight.value) return undefined
+        const base: Record<string, string> = isHidden.value ? { display: 'none' } : {}
+        if (!hasHeight.value) return Object.keys(base).length ? base : undefined
         const raw = props.height as number | string
         const v = typeof raw === 'number' || /^\d+(\.\d+)?$/.test(String(raw))
             ? `${raw}px`
             : String(raw)
-        return { height: v, display: 'flex', flexDirection: 'column', overflow: 'hidden' }
+        return isHidden.value
+            ? { display: 'none' }
+            : { height: v, display: 'flex', flexDirection: 'column', overflow: 'hidden' }
     })
     const tableWrapperStyle = computed(() =>
         hasHeight.value ? { flex: '1 1 auto', minHeight: 0, overflow: 'auto' } : undefined
@@ -731,8 +737,9 @@
                         whereItems.push({ field, operator: '%', value })
                     })
                     loadParam.whereItems = whereItems
-                    if (props.whereStr) {
-                        loadParam.whereStr = props.whereStr
+                    const effectiveWhereStr = localWhereStr.value || props.whereStr
+                    if (effectiveWhereStr) {
+                        loadParam.whereStr = effectiveWhereStr
                     }
                 }
                 if (props.onBeforeLoad && $.invoke(props.onBeforeLoad, loadParam) === false) {
@@ -1573,8 +1580,154 @@
         autoApply: props.autoApply,
         showLoading,
         hideLoading,
-        ...EXPOSE_METHODS
+        ...EXPOSE_METHODS,
+
+        getSelected:      () => rows[selectedIndex.value] ?? null,
+        getSelectedIndex: () => selectedIndex.value,
+        select,
+        check:      (i: number) => { if (!checkedRows.value.has(i)) toggleCheck(i) },
+        uncheck:    (i: number) => { if (checkedRows.value.has(i))  toggleCheck(i) },
+        checkAll:   () => { rows.forEach((_, i) => { if (!checkedRows.value.has(i)) toggleCheck(i) }) },
+        uncheckAll: () => { rows.forEach((_, i) => { if (checkedRows.value.has(i))  toggleCheck(i) }) },
+        getChecked: () => Array.from(checkedRows.value).map(i => rows[i]).filter(Boolean),
+
+        beginEdit,
+        getTotal:    () => footRow.value,
+        getToolItem: (name: string) => (props.toolItems || []).find((t: any) => t.onclick === name) ?? null,
+        hideColumn,
+        showColumn:  restoreColumn,
+        getRows:         () => rows,
+        viewRow:         (i: number) => view_row(i),
+        updateRow:       (param: { index: number, row: Record<string, any> }) => {
+            if (!param || param.index == null || !param.row) return
+            const target = rows[param.index]
+            if (target) Object.assign(target, param.row)
+        },
+        getEditorValue:  (name: string) => (editRow.value as any)?.[name],
+        setEditorValue:  (param: { field: string, value: unknown }) => {
+            if (param?.field) (editRow.value as any)[param.field] = param.value
+        },
+        getColumnOption: (field: string) => (columns as any[]).find((c: any) => c.field === field) ?? null,
+        setColumnTitle:  (param: { field: string, title: string }) => {
+            const c: any = (columns as any[]).find((c: any) => c.field === param?.field)
+            if (c) c.title = param.title
+        },
+        hide: () => { isHidden.value = true },
+        setWhere: (where: string | null) => {
+            localWhereStr.value = (typeof where === 'string' && where !== '') ? where : null
+            currentPage.value = 1
+            hasQueried.value = true
+            return load()
+        },
+        exportWordPdf: (options: any = {}) =>
+            exportWord({ ...(typeof options === 'string' ? { name: options } : options), fileType: 'pdf' }),
+
+        exportExcel: async (options: any = {}) => {
+            const opts = typeof options === 'string' ? { name: options } : (options || {})
+            const index = selectedIndex.value
+            const masterRow = index >= 0 ? toRaw(rows[index]) : null
+            const param: any = {
+                remoteName: props.remoteName,
+                masterRow,
+                fileType: opts.fileType || 'xlsx',
+                wordName: opts.wordName || opts.fileName,
+                downloadName: opts.downloadName || ''
+            }
+            const paths = window.location.pathname.split('/')
+            const name = opts.name || decodeURI(paths[paths.length - 1])
+            try {
+                const { exportFile } = dataUtils(props.remoteName)
+                const file = await exportFile('excel', name, param)
+                if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
+                const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '')
+                const newName = encodeURIComponent(param.downloadName || name)
+                const link = document.createElement('a')
+                link.href = `${baseUrl}/file?q=${file}&n=${newName}`
+                link.setAttribute('download', '')
+                document.body.appendChild(link); link.click(); document.body.removeChild(link)
+            } catch (e) { $.showError(e) }
+        },
+
+        exportReport: async (options: any = {}) => {
+            const opts = typeof options === 'string' ? { name: options } : (options || {})
+            const reportName = (props as any).reportName
+            if (!reportName) {
+                $.showError('exportReport: ReportName prop is empty')
+                return
+            }
+            const param = {
+                remoteName: props.remoteName,
+                reportName,
+                fileType: opts.fileType || 'pdf',
+                downloadName: opts.downloadName || ''
+            }
+            try {
+                const { exportFile } = dataUtils(props.remoteName)
+                const file = await exportFile('report', reportName, param)
+                if (!file) return
+                const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '')
+                const newName = encodeURIComponent(param.downloadName || reportName)
+                window.open(`${baseUrl}/file?q=${file}&n=${newName}&t=inline`)
+            } catch (e) { $.showError(e) }
+        },
+
+        export: async (options: any = {}) => {
+            const opts = typeof options === 'string' ? { name: options } : (options || {})
+            const param: any = {
+                remoteName: props.remoteName,
+                rows: toRaw(rows),
+                columns: (columns as any[]).filter((c: any) => !c.hidden),
+                fileType: opts.fileType || 'xlsx',
+                downloadName: opts.downloadName || ''
+            }
+            const paths = window.location.pathname.split('/')
+            const name = opts.name || decodeURI(paths[paths.length - 1])
+            try {
+                const { exportFile } = dataUtils(props.remoteName)
+                const file = await exportFile('excel', name, param)
+                if (!file) return
+                const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '')
+                const newName = encodeURIComponent(param.downloadName || name)
+                const link = document.createElement('a')
+                link.href = `${baseUrl}/file?q=${file}&n=${newName}`
+                link.setAttribute('download', '')
+                document.body.appendChild(link); link.click(); document.body.removeChild(link)
+            } catch (e) { $.showError(e) }
+        },
+
+        importExcel: () => triggerExcelImport(true),
+        importExcelNotApply: () => triggerExcelImport(false)
     })
+
+    // ---------- Excel import helper ----------
+    function triggerExcelImport (autoApply: boolean) {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = '.xls,.xlsx,.csv'
+        input.style.display = 'none'
+        input.addEventListener('change', async (ev) => {
+            const file = (ev.target as HTMLInputElement).files?.[0]
+            if (!file) return
+            try {
+                if ($.loading) $.loading(document.body, $.localeMessages?.value?.loading || 'Loading...')
+                const { uploadFile, callMethod } = dataUtils(props.remoteName)
+                const uploaded = await uploadFile(file, { folder: 'import', kind: 'importExcel' })
+                const fileName = (uploaded && (uploaded.name || uploaded.fileName)) || ''
+                if (!fileName) { $.showError('importExcel: upload failed'); return }
+                const parsed = await callMethod('importExcel', { fileName, remoteName: props.remoteName })
+                const newRows = Array.isArray(parsed) ? parsed : (parsed?.rows || [])
+                rows.splice(0, rows.length, ...newRows)
+                if (autoApply) await submit()
+            } catch (e) {
+                $.showError(e)
+            } finally {
+                if ($.loaded) $.loaded(document.body)
+                document.body.removeChild(input)
+            }
+        }, { once: true })
+        document.body.appendChild(input)
+        input.click()
+    }
 
 </script>
 

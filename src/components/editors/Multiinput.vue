@@ -33,6 +33,7 @@
 
 <script setup>
 import { computed, watch, ref } from 'vue'
+import { validate as runValidate } from '@/composables/useValidator'
 
 const props = defineProps({
   modelValue: { type: [String, Array, Number, null], default: '' },
@@ -46,9 +47,13 @@ const props = defineProps({
   wrapperClass: { type: [String, Object, Array], default: '' },
   fallbackLabel: { type: String, default: '' },
   placeholder: { type: String, default: '' },
+  required: { type: Boolean, default: false },
+  validType: { type: String, default: '' },
+  customRules: { type: Object, default: undefined }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'validate'])
+const errorMessage = ref('')
 
 const readonlyComputed = computed(() => {
   const o = props.options || {}
@@ -67,7 +72,7 @@ const fieldsArr = computed(() => {
 
 const inputs = ref([])
 
-// 若無 fields，以單欄位 fallback 映射 v-model
+// if no fields
 const fallbackValue = computed({
   get () {
     if (Array.isArray(props.modelValue)) return props.modelValue.join(sep.value)
@@ -97,8 +102,25 @@ watch(inputs, (val) => {
   if (!fieldsArr.value.length) return
   if (Array.isArray(props.modelValue)) emit('update:modelValue', [...val])
   else emit('update:modelValue', (val || []).join(sep.value))
+  validate()
 }, { deep: true })
 
+function validate () {
+  const v = props.modelValue
+  const empty = Array.isArray(v) ? v.every(s => s == null || s === '') : (v == null || v === '')
+  let msg = ''
+  if (props.required && empty) {
+    msg = 'required'
+  } else if (props.validType && !empty) {
+    const text = Array.isArray(v) ? v.join(sep.value) : String(v)
+    msg = runValidate(props.validType, text, props.customRules)
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
+}
+
+defineExpose({ validate })
 </script>
 
 
@@ -107,8 +129,6 @@ watch(inputs, (val) => {
 .multiinput-wrapper {
   width: 100%;
 }
-
-/* 限制在本欄寬度內，並預留一點右邊空間，對齊其他輸入框 */
 .multiinput-group {
   width: calc(100% - 0.6rem);
   flex-wrap: wrap;

@@ -113,9 +113,8 @@ const displayValue = computed(() => {
   return updater
 })
 
-defineExpose({
-  getDateValue
-})
+function validate () { return '' }
+defineExpose({ getDateValue, validate })
 </script>
 
 <style scoped>

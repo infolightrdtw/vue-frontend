@@ -1,7 +1,8 @@
 <template>
     <li class="nav-item" role="presentation">
-        <button :class="buttonCls" type="button" role="tab"  @click.prevent="select">
+        <button :class="buttonCls" type="button" role="tab" @click.prevent="select">
             {{text}}
+            <span v-if="count != undefined" class="badge">{{count}}</span>
             <span v-if="canClose" class="fa fa-remove" style="margin-left:5px" @click.stop="close"></span>
         </button>
     </li>
@@ -16,7 +17,8 @@
     }>()
     const $ = root
 
-    const text = computed(() => item.text ? item.text: $.getMessage(item.name))
+    const text = computed(() => item.text ? item.text : $.getMessage(item.name))
+    const count = computed(() => item.count)
     const canClose = computed(() => item.canClose !== false)
     const buttonCls = computed(() => ['nav-link', item.active === true ? 'active' : ''])
 

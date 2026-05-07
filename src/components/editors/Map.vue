@@ -7,26 +7,41 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { validate as runValidate, type ValidatorRuleMap } from '@/composables/useValidator'
 
 type AnyValue = { lat: number; lng: number; zoom?: number } | string | null;
 
 const props = withDefaults(defineProps<{
-  modelValue?: AnyValue,  
-  height?: number,     
-  level?: number, 
-  valueType?: 'point' | 'geojson' | 'wkt' | string 
+  modelValue?: AnyValue,
+  height?: number,
+  level?: number,
+  valueType?: 'point' | 'geojson' | 'wkt' | string,
+  readonly?: boolean,
+  disabled?: boolean,
+  required?: boolean,
+  validType?: string,
+  customRules?: ValidatorRuleMap
 }>(), {
   modelValue: null,
   height: 200,
   level: 13,
-  valueType: 'point'
+  valueType: 'point',
+  readonly: false,
+  disabled: false,
+  required: false,
+  validType: '',
+  customRules: undefined
 });
 
 const emit = defineEmits<{
   (e: 'update:modelValue', v: AnyValue): void
   (e: 'change', v: AnyValue): void
+  (e: 'validate', error: string): void
 }>();
+
+const isDisabled = computed(() => props.disabled || props.readonly)
+const errorMessage = ref('')
 
 const mapEl = ref<HTMLElement | null>(null);
 let map: any = null;
@@ -111,7 +126,10 @@ onMounted(async () => {
     if (props.modelValue && typeof props.modelValue !== 'string') {
       setPoint(initial.lat, initial.lng);
     }
-    map.on('click', (e: any) => setPoint(e.latlng.lat, e.latlng.lng, true));
+    map.on('click', (e: any) => {
+      if (isDisabled.value) return
+      setPoint(e.latlng.lat, e.latlng.lng, true)
+    });
     map.on('zoomend', () => {
       if (props.valueType !== 'point') return;
       const v = props.modelValue as any;
@@ -153,6 +171,22 @@ watch(() => props.modelValue, (v) => {
     setGeoJSON(v);
   }
 });
+
+function validate (): string {
+  const v = props.modelValue
+  let msg = ''
+  if (props.required && (v === null || v === undefined || v === '')) {
+    msg = 'required'
+  } else if (props.validType && v) {
+    const text = typeof v === 'string' ? v : JSON.stringify(v)
+    msg = runValidate(props.validType, text, props.customRules as never)
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
+}
+
+defineExpose({ validate })
 </script>
 
 <style scoped>

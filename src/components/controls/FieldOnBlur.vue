@@ -2,68 +2,82 @@
 </template>
 
 <script setup lang="ts">
-    import { reactive, computed, watch, onMounted } from 'vue'
-    let { root, bindingObject = '', columns = [] } = defineProps<{
-        root: object,
+    import { computed, watch, onMounted } from 'vue'
+
+    const props = withDefaults(defineProps<{
+        root: any,
         bindingObject?: string,
-        columns: Array
-    }>()
+        columns?: any[]
+    }>(), {
+        bindingObject: '',
+        columns: () => []
+    })
+
+    const root = computed(() => props.root)
+    const columns = computed(() => props.columns || [])
 
     onMounted(() => {
-        if (bindingObject) {
-            const { totalObjs } = initFields()
-            const control = root['$' + bindingObject]
-            watch(() => control.value ? control.value.currentRow: {}, (newRow, oldRow) => {
-                columns.forEach(c => {
-                    //if (isChanged(newRow, oldRow, column)) {
-                    if (!c.isTotal) {
-                        if (Object.keys(newRow).length > 0) {
-                            var v = getExpressionValue(c, newRow)
-                            if (v !== undefined) {
-                                newRow[c.targetField] = v
-                            }
-                        }
-                    }
-                   // }
-                })
-            }, { deep: true })
-            totalObjs.forEach(o => {
-                const totalControl = root['$' + o]
-                watch(() => totalControl.value ? totalControl.value.totalRow : {}, () => {
-                    if (control.value && control.value.currentRow) {
-                        const newRow = control.value.currentRow
-                        columns.forEach(c => {
-                            if (c.isTotal) {
-                                var v = getExpressionValue(c, newRow)
-                                if (v !== undefined) {
-                                    newRow[c.targetField] = v
-                                }
-                            }
-                        })
-                    }
-                }, { deep: true })
+        if (!props.bindingObject) return
+        const { totalObjs } = initFields()
+        const control = root.value['$' + props.bindingObject]
 
+        watch(() => control?.value ? control.value.currentRow : {}, (newRow) => {
+            columns.value.forEach(c => {
+                if (!c.isTotal && newRow && Object.keys(newRow).length > 0) {
+                    const v = getExpressionValue(c, newRow)
+                    if (v !== undefined) newRow[c.targetField] = v
+                }
             })
-        }
+        }, { deep: true })
+
+        totalObjs.forEach(o => {
+            const totalControl = root.value['$' + o]
+            watch(() => totalControl?.value ? totalControl.value.totalRow : {}, () => {
+                if (control?.value && control.value.currentRow) {
+                    const newRow = control.value.currentRow
+                    columns.value.forEach(c => {
+                        if (c.isTotal) {
+                            const v = getExpressionValue(c, newRow)
+                            if (v !== undefined) newRow[c.targetField] = v
+                        }
+                    })
+                }
+            }, { deep: true })
+        })
     })
+
+    // Manual trigger by changed field name (jQuery $.fn.fieldonblur.trigger).
+    // Recomputes any column whose expression references `name`, then propagates.
+    function trigger(name: string) {
+        if (!props.bindingObject) return
+        const control = root.value['$' + props.bindingObject]
+        const row = control?.value?.currentRow
+        if (!row) return
+        const triggerNames = [name]
+        columns.value.forEach(c => {
+            const fields: string[] = c.fields || (c.expression || '').match(/[\u4e00-\u9fa5_a-zA-Z0-9_\.']+/g) || []
+            const hit = fields.some(f => triggerNames.some(n => f.indexOf(n) === 0))
+            if (!hit || !c.targetField) return
+            const v = getExpressionValue(c, row)
+            if (v !== undefined) {
+                row[c.targetField] = v
+                triggerNames.push(c.targetField)
+            }
+        })
+    }
+
+    defineExpose({ trigger })
 
 
     function initFields() {
-        const totalObjs = []
-        columns.forEach(c => {
-            c.fields = (c.expression || '').match(/[\u4e00-\u9fa5_a-zA-Z0-9_\.']+/g);
-            if (/[a-zA-Z0-9_]+\(/.exec(c.expression || '')) {
-                c.isFunc = true
-            }
-            else {
-                c.isFunc = false
-            }
-            c.fields.forEach(f => {
-                const { tObj, tField } = isTotal(f)
+        const totalObjs: string[] = []
+        columns.value.forEach(c => {
+            c.fields = (c.expression || '').match(/[\u4e00-\u9fa5_a-zA-Z0-9_\.']+/g) || []
+            c.isFunc = !!/[a-zA-Z0-9_]+\(/.exec(c.expression || '')
+            c.fields.forEach((f: string) => {
+                const { tObj } = isTotal(f)
                 if (tObj) {
-                    if (totalObjs.indexOf(tObj) < 0) {
-                        totalObjs.push(tObj)
-                    }
+                    if (totalObjs.indexOf(tObj) < 0) totalObjs.push(tObj)
                     c.isTotal = true
                 }
             })
@@ -83,14 +97,13 @@
         return changed
     }
 
-    function getExpressionValue(column: object, currentRow: object) {
-        const scripts = []
-        //if fields contains function
-        if (column.isFunc) {
-           Object.keys(root.funcStrings).forEach(k=> scripts.push(root.funcStrings[k]))
+    function getExpressionValue(column: any, currentRow: any) {
+        const scripts: string[] = []
+        if (column.isFunc && root.value?.funcStrings) {
+            Object.keys(root.value.funcStrings).forEach(k => scripts.push(root.value.funcStrings[k]))
         }
         let isReturn = false
-        column.fields.forEach(f => {
+        column.fields.forEach((f: string) => {
             if (isField(f)) {
                 //isField
                 const fieldValue = getTypeValue(currentRow[f], column.fields.length)
@@ -110,7 +123,7 @@
                 //isTotal
                 const { tObj, tField } = isTotal(f)
                 if (tObj) {
-                    const totalRow = root['$' + tObj].value ? root['$' + tObj].value.totalRow : {}
+                    const totalRow = root.value['$' + tObj]?.value?.totalRow || {}
                     if (Object.keys(totalRow).length == 0) {
                         isReturn = true
                     }

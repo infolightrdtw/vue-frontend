@@ -187,6 +187,7 @@
         onApplyError: String,
         onCancel: String,
         onDelete: String,
+        onExportWord: String,
         onShowTitle: String,
         loadAction: String,
         onFlowLoad: String,
@@ -1257,6 +1258,35 @@
         open({ row: target, status: 'updated', keys: dataKeys.value || [], flowRow: null })
     }
 
+    function view_row(row) {
+        const target = row != null ? { ...row } : { ...toRaw(formState) }
+        open({ row: target, status: 'view', keys: dataKeys.value || [], flowRow: null })
+    }
+
+    function status() {
+        return formStatus.value
+    }
+
+    function openQuery() {
+        const grids = viewGrids
+        const ids = grids ? Object.keys(grids) : []
+        for (const gid of ids) {
+            const g = grids[gid]
+            if (g?.value && typeof g.value.openQuery === 'function') {
+                g.value.openQuery()
+                return true
+            }
+        }
+        return false
+    }
+
+    function exportWord(param) {
+        if (props.onExportWord && props.root?.invoke) {
+            return props.root.invoke(props.onExportWord, param || {}, toRaw(formState))
+        }
+        return null
+    }
+
     async function delete_row() {
         const row = toRaw(formState)
         if (props.onDelete && props.root?.invoke) {
@@ -1364,6 +1394,7 @@
         insert_row,
         edit_row,
         delete_row,
+        view_row,
         cancel,
         reload,
         setReadonly,
@@ -1371,6 +1402,28 @@
         getDefaultValues,
         getParentObj,
         getFlowParameter,
+        status,
+        openQuery,
+        exportWord,
+        exportReport: (param) =>
+            (props.onApplied && props.root?.invoke)
+                ? props.root.invoke(props.onApplied, param || {}, toRaw(formState))
+                : null,
+        
+        options: () => ({
+            id: props.id,
+            remoteName: props.remoteName,
+            mode: props.mode,
+            readonly: props.readonly,
+            duplicateCheck: props.duplicateCheck,
+            recordLock: props.recordLock,
+            validateStyle: props.validateStyle,
+            isShowFlowIcon: props.isShowFlowIcon,
+            autoPause: props.autoPause,
+            fit: props.fit,
+            closeProtect: props.closeProtect
+        }),
+        hide: () => { visible.value = false },
         currentRow: formState,
         isShowFlowIcon: props.isShowFlowIcon,
         viewGrids,

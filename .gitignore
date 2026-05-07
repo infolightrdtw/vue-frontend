@@ -28,7 +28,24 @@ pnpm-debug.log*
 /src/composables/__tests__
 /src/components/editors/__tests__
 /src/components/elements/__tests__
+/src/components/controls/__tests__
+/tests/
 /.vs
 
 .svn/
 .DS_Store
+
+# Test output
+/coverage/
+/test-results.junit.xml
+/playwright-report/
+/test-results/
+/tests/e2e/.auth/
+
+# 排除 TypeScript 定義檔與特定設定檔
+*.d.ts
+*.config.ts
+
+# 排除診斷資料夾
+diagnostic/
+.claude/

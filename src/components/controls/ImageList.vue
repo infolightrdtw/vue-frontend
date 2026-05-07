@@ -259,7 +259,7 @@ async function defaultFetcher(remoteName: string): Promise<AnyRow[]> {
 
   try {
     const { loadData: apiLoadData } = dataUtils(rn);
-    const data = await apiLoadData({});
+    const data = await apiLoadData({ total: false, whereStr: '', whereItems: [] });
 
     if (Array.isArray(data)) return data;
     if (Array.isArray((data as any)?.rows)) return (data as any).rows;

@@ -96,7 +96,18 @@ function validate() {
   return msg
 }
 
-defineExpose({ validate })
+defineExpose({
+  validate,
+
+  getValue: () => props.modelValue ?? '',
+  setValue: (v) => emit('update:modelValue', v ?? ''),
+  options:  () => ({
+    onText: props.onText, onValue: props.onValue,
+    offText: props.offText, offValue: props.offValue,
+    style: props.style, type: props.type,
+    readonly: props.readonly, disabled: props.disabled
+  })
+})
 </script>
 
 <style scoped>

@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, useAttrs, watch } from 'vue'
-import axios from 'axios'
+import dataUtils from '@/utils/dataApi'
 
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
@@ -42,13 +42,6 @@ const computedHeight = computed(() => {
   return `${h * 0.9}px` 
 })
 
-function parseRemoteName(remoteName: string) {
-  const rn = String(remoteName || '').trim()
-  const module = rn.includes('.') ? rn.split('.')[0] : ''
-  const command = rn.includes('.') ? rn.split('.')[1] : ''
-  return { module, command }
-}
-
 async function loadData() {
   const remoteName = String(get('remoteName') ?? '').trim()
 
@@ -61,29 +54,14 @@ async function loadData() {
 
   try {
     isLoading.value = true
-    let param: any = {
+    const { loadData: apiLoadData } = dataUtils(remoteName)
+    const r: any = await apiLoadData({
       total: false,
-      whereStr: get('whereStr', null)
-    }
-
-    const { module, command } = parseRemoteName(remoteName)
-    const bodyObj: any = {
-      mode: 'getDataset',
-      module,
-      command,
-      datas: JSON.stringify([param]),
-      duplicateCheck: false
-    }
-
-    const body = new URLSearchParams()
-    Object.entries(bodyObj).forEach(([k, v]) => body.append(k, String(v ?? '')))
-
-    const { data } = await axios.post('/api/ApiMain/Data', body, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
+      whereStr: get('whereStr', '') || '',
+      whereItems: Array.isArray(get('whereItems')) ? get('whereItems') : []
     })
+    const rows = Array.isArray(r) ? r : (r?.rows ?? r?.data ?? [])
 
-    const rows = Array.isArray(data) ? data : (data?.rows ?? data?.data ?? [])
-    
     if (rows && rows.length > 0) {
       const row = rows[0]
       const valField = get('field')
@@ -103,15 +81,14 @@ async function loadData() {
 
 const chartOptions = computed(() => {
   const style = get('gaugeStyle', 'active') // 'active', 'donut', 'zones'
-  const ptrLength = get('ptrLength', 60) // 指針長度比例
-  const ptrStroke = get('ptrStroke', 5) // 指針粗細
-  const ptrColor = get('ptrColor', '#000000') // 指針顏色
-  const lineWidth = get('lineWidth', 15) // 儀表板環的粗細
-  const viewLabels = get('viewLabels', true) // 是否顯示中間數字
-  const labelsSize = get('labelsSize', 20) // 文字大小
-  const labelPosition = get('labelPosition', 0) // 文字 Y 軸位移 (百分比)
+  const ptrLength = get('ptrLength', 60) 
+  const ptrStroke = get('ptrStroke', 5) 
+  const ptrColor = get('ptrColor', '#000000') 
+  const lineWidth = get('lineWidth', 15) 
+  const viewLabels = get('viewLabels', true) 
+  const labelsSize = get('labelsSize', 20) 
+  const labelPosition = get('labelPosition', 0) 
 
-  // 顏色區間 (Zones)
   let axisLineColors: any[] = []
   
   if (style === 'zones') {
@@ -130,7 +107,6 @@ const chartOptions = computed(() => {
     axisLineColors = [[1, get('colorStart', '#6FADCF')]]
   }
 
-  // 2. 是否為 Donut 樣式 (隱藏指針)
   const showPointer = style !== 'donut'
 
   return {
@@ -139,7 +115,6 @@ const chartOptions = computed(() => {
         type: 'gauge',
         min: internalMin.value,
         max: internalMax.value,
-        // 儀表板開口角度
         startAngle: 210,
         endAngle: -30,
         radius: '90%',
@@ -155,19 +130,19 @@ const chartOptions = computed(() => {
             color: axisLineColors
           }
         },
-        // 刻度線設定
+       
         axisTick: { show: false },
         splitLine: { show: false },
         axisLabel: { 
           show: get('viewStaticLabels', false),
           distance: 15
         },
-        // 中間的數值文字
+        
         detail: {
           show: viewLabels,
           valueAnimation: true,
           fontSize: labelsSize,
-          color: 'inherit', // 跟隨外環顏色，或可設為 'black'
+          color: 'inherit', 
           offsetCenter: [0, `${labelPosition}%`],
           formatter: '{value}'
         },

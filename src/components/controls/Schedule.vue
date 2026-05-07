@@ -165,19 +165,24 @@ onMounted(async () => {
 async function loadEvents(info: any, success: any, failure: any) {
    try {
     const rn = get('remoteName')
-    const { module, command } = parseRemoteName(rn)
+    const { module } = parseRemoteName(rn)
     if (!module) return success([])
 
     const { loadData: apiLoadData } = dataUtils(rn)
 
-    let param: any = { start: info.startStr, end: info.endStr }
+    let param: any = {
+      start: info.startStr,
+      end: info.endStr,
+      whereStr: get('whereStr', '') || '',
+      whereItems: Array.isArray(get('whereItems')) ? get('whereItems') : []
+    }
 
     const onBeforeLoad = get('onBeforeLoad')
     if (typeof onBeforeLoad === 'function') {
       param = onBeforeLoad(param) || param
     }
 
-    const r = await apiLoadData({ datas: [param] })
+    const r = await apiLoadData(param)
 
     const rows = Array.isArray(r) ? r : (r?.rows || [])
 

@@ -5,14 +5,16 @@
       <div class="panel-heading">
         <h5 class="panel-title">
           {{ title || '&nbsp;' }}
-          <a class="pull-right glyphicon glyphicon-chevron-down" 
-             tabindex="0" 
-             data-toggle="collapse" 
-             :href="`#${id}_panel`"></a>
+          <a class="pull-right"
+             tabindex="0"
+             data-bs-toggle="collapse"
+             :href="`#${id}_panel`">
+            <i class="bi bi-chevron-down"></i>
+          </a>
         </h5>
       </div>
 
-      <div class="panel-collapse in" :id="`${id}_panel`">
+      <div class="panel-collapse collapse show" :id="`${id}_panel`">
         
         <div class="panel-body chat-panel" ref="chatPanelRef" :style="{ height: `${height}px`, overflowY: 'auto' }">
           
@@ -64,13 +66,15 @@
                      style="display: none;" 
                      @change="handleFileChange" />
 
-              <button class="btn btn-default file-submit form-btn glyphicon glyphicon-folder-open" 
-                      tabindex="-1" style="top:0" 
+              <button class="btn btn-outline-secondary file-submit form-btn"
+                      tabindex="-1" style="top:0"
                       :disabled="isProcessing"
-                      @click="submitFile" 
-                      :title="lm.uploading"></button>
-              <button class="btn btn-default chat-send" 
-                      tabindex="-1" style="top:0" 
+                      @click="submitFile"
+                      :title="lm.uploading">
+                <i class="bi bi-folder2-open"></i>
+              </button>
+              <button class="btn btn-primary chat-send"
+                      tabindex="-1" style="top:0"
                       :disabled="isProcessing"
                       @click="sendChat">
                 {{ lm.send }}
@@ -81,13 +85,11 @@
       </div>
     </div>
 
-    <div class="modal fade" id="imgZoomModal" tabindex="-1" role="dialog" :class="{ in: isZoomModalOpen }" :style="{ display: isZoomModalOpen ? 'block' : 'none' }">
+    <div class="modal fade" id="imgZoomModal" tabindex="-1" role="dialog" :class="{ show: isZoomModalOpen }" :style="{ display: isZoomModalOpen ? 'block' : 'none' }">
       <div class="modal-dialog draggable">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" @click="closeImageModal" aria-label="Close">
-              <span>&times;</span>
-            </button>
+            <button type="button" class="btn-close" @click="closeImageModal" aria-label="Close"></button>
             <h4 class="modal-title">&nbsp;</h4>
           </div>
           <div class="modal-body text-center">
@@ -168,8 +170,10 @@ const formatMessage = (msg) => {
 const getIconCls = (from) => {
   let icon = from === 'user' ? props.userIconCls : props.gptIconCls;
   if (!icon) return '';
-  if (icon.match(/^glyphicon\-/)) return `glyphicon ${icon}`;
-  if (icon.match(/^fa\-/)) return `fa ${icon}`;
+  // accept legacy glyphicon-* (mapped to bi-* fallback) / bi-* / fa-* / raw class
+  if (icon.match(/^glyphicon-/)) return `bi ${icon.replace(/^glyphicon-/, 'bi-')}`;
+  if (icon.match(/^bi-/)) return `bi ${icon}`;
+  if (icon.match(/^fa-/)) return `fa ${icon}`;
   return icon;
 };
 

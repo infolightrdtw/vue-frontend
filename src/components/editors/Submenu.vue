@@ -3,11 +3,11 @@
     <button
       type="button"
       class="btn btn-secondary dropdown-toggle w-100 text-start position-relative"
-      :class="{ 'disabled': disabled || readonly }"
-      :disabled="disabled || readonly"
+      :class="{ 'disabled': isDisabled }"
+      :disabled="isDisabled"
       @click="toggleRoot"
     >
-      <span class="text-truncate pe-3">{{ lm.pleaseSelect }}</span>
+      <span class="text-truncate pe-3">{{ currentText || lm.pleaseSelect }}</span>
     </button>
 
     <div 
@@ -36,7 +36,8 @@
 <script setup>
 import { ref, computed, watch, inject, onMounted, onUnmounted, defineComponent, h } from 'vue'
 import dataUtils from '@/utils/dataApi'
-import pageUtils from '@/utils/pageApi' 
+import pageUtils from '@/utils/pageApi'
+import { validate as runValidate } from '@/composables/useValidator'
 
 const $this = pageUtils({}, {})
 const lm = computed(() => $this.localeMessages?.value || {})
@@ -124,12 +125,18 @@ const props = defineProps({
   placeholder: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
   readonly: { type: Boolean, default: false },
+  required: { type: Boolean, default: false },
+  validType: { type: String, default: '' },
+  customRules: { type: Object, default: undefined },
   rowData: { type: Object, default: () => ({}) },
   onBeforeLoad: Function,
   onSelect: Function
 })
 
-const emit = defineEmits(['update:modelValue', 'change'])
+const emit = defineEmits(['update:modelValue', 'change', 'validate'])
+
+const isDisabled = computed(() => props.disabled || props.readonly)
+const errorMessage = ref('')
 
 const config = computed(() => {
   return {
@@ -253,10 +260,11 @@ const fetchRemoteData = async () => {
 const toggleRoot = (e) => {
   e.preventDefault()
   e.stopPropagation()
+  if (isDisabled.value) return
   isRootOpen.value = !isRootOpen.value
-  
+
   if (!isRootOpen.value) {
-    closeAll(treeData.value) 
+    closeAll(treeData.value)
   }
 }
 
@@ -264,11 +272,25 @@ const handleSelect = (item) => {
   const value = item[config.value.valueField]
   emit('update:modelValue', value)
   emit('change', value)
-  
+
   if (props.onSelect) props.onSelect(value)
 
   isRootOpen.value = false
   closeAll(treeData.value)
+  validate()
+}
+
+function validate () {
+  const v = props.modelValue
+  let msg = ''
+  if (props.required && (v === null || v === undefined || v === '')) {
+    msg = 'required'
+  } else if (props.validType && v !== '' && v != null) {
+    msg = runValidate(props.validType, String(v), props.customRules)
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
 }
 
 const handleClickOutside = (e) => {
@@ -289,7 +311,7 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
-defineExpose({ load: fetchRemoteData, loadData })
+defineExpose({ load: fetchRemoteData, loadData, validate })
 </script>
 
 <style scoped>

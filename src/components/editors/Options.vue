@@ -171,8 +171,9 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, defineExpose, nextTick, getCurrentInstance } from 'vue'
+import { ref, computed, watch, onMounted, nextTick, getCurrentInstance } from 'vue'
 import dataUtils from '@/utils/dataApi'
+import { validate as runValidate } from '@/composables/useValidator'
 
 const props = defineProps({
   modelValue: { type: [String, Number, Boolean, Array], default: null },
@@ -185,27 +186,34 @@ const props = defineProps({
   remoteName: { type: String, default: '' },
   whereStr: { type: String, default: '' },
   whereItems: { type: [Array, Object, String, null], default: null },
-  fromSysParameters: { type: Boolean, default: false }, 
+  fromSysParameters: { type: Boolean, default: false },
   loader: { type: Function, default: null },
 
   multiple: { type: Boolean, default: false },
   mode: { type: String, default: 'button' }, // 'button' | 'dialog' | 'list' | 'checkradio'
-  orientation: { type: String, default: 'horizontal' }, 
+  orientation: { type: String, default: 'horizontal' },
   valueField: { type: String, default: 'value' },
   textField: { type: String, default: 'text' },
   separator: { type: String, default: ',' },
-  showTextbox: { type: Boolean, default: false }, 
+  showTextbox: { type: Boolean, default: false },
   readonly: { type: Boolean, default: false },
+  // declared so DataForm's `disabled: false` fall-through can't override the
+  // internal :disabled binding
+  disabled: { type: Boolean, default: false },
+  required: { type: Boolean, default: false },
+  validType: { type: String, default: '' },
+  customRules: { type: Object, default: undefined },
 
   name: { type: String, default: () => `opt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}` },
   variant: { type: String, default: 'outline-secondary' },
   size: { type: String, default: 'sm' },
 
-  onSelect: { type: Function, default: null }, 
-  field: { type: String, default: '' } 
+  onSelect: { type: Function, default: null },
+  field: { type: String, default: '' }
 })
 
-const emit = defineEmits(['update:modelValue', 'change', 'loaded', 'before-load'])
+const emit = defineEmits(['update:modelValue', 'change', 'loaded', 'before-load', 'validate'])
+const errorMessage = ref('')
 
 const internalField = ref(props.field || '')
 
@@ -279,19 +287,14 @@ async function fetchRemoteData(remoteName, whereItems) {
   const rn = remoteName || props.remoteName
   if (!rn) return []
 
-  const { module, command } = parseRemote(rn)
   const { loadData: apiLoadData } = dataUtils(rn)
-
-  // 100% 比照 Combobox 的 Payload
+  // payload aligned with jQuery (whereItems must be an array, never null —
+  // dataApi would otherwise stringify null to 'null' → backend 400)
   const body = {
-    mode: 'getDataset',
-    module,
-    command,
-    remoteName: rn,
-    whereItems: whereItems || props.whereItems || null,
-    whereStr: props.whereStr 
+    total: false,
+    whereStr: props.whereStr || '',
+    whereItems: Array.isArray(whereItems) ? whereItems : []
   }
-
   const r = await apiLoadData(body)
   const data = r && (r.rows || r.items || r.data || r)
   return Array.isArray(data) ? data : []
@@ -419,9 +422,9 @@ function setWhere(where) {
   }
 }
 
-const localReadonly = ref(props.readonly)
-function readonly(v) { localReadonly.value = !!v }
-watch(() => props.readonly, v => { localReadonly.value = v })
+const localReadonly = computed(() => props.disabled || props.readonly || _localReadonlyOverride.value)
+const _localReadonlyOverride = ref(false)
+function readonly(v) { _localReadonlyOverride.value = !!v }
 
 const listChips = computed(() => {
   const sel = new Set(toArray(internal.value))
@@ -509,6 +512,23 @@ function addItems(values) {
   internal.value = [...arr]
 }
 
+function validate () {
+  const v = internal.value
+  const empty = props.multiple
+    ? !Array.isArray(v) || v.length === 0
+    : v === null || v === undefined || v === ''
+  let msg = ''
+  if (props.required && empty) {
+    msg = 'required'
+  } else if (props.validType && !empty) {
+    const text = props.multiple ? toArray(v).join(props.separator) : String(v)
+    msg = runValidate(props.validType, text, props.customRules)
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
+}
+
 defineExpose({
   load, loadData: internalLoadData,
   getValues, setValues,
@@ -516,6 +536,7 @@ defineExpose({
   changeValue, setWhere,
   readonly, getWhereItems: getWhereItemsOut,
   addItems, options: apiOptions,
+  validate,
 })
 
 

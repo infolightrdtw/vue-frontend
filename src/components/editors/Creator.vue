@@ -106,9 +106,9 @@ const displayValue = computed(() => {
   return creator
 })
 
-defineExpose({
-  getDateValue
-})
+// auto-filled / display-only — validate is a no-op for API parity with other editors
+function validate () { return '' }
+defineExpose({ getDateValue, validate })
 </script>
 
 <style scoped>

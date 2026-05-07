@@ -27,15 +27,17 @@ const props = defineProps({
   imageFolder: { type: String, default: '' },
   htmlAvailable: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
-  readonly: { type: Boolean, default: false }
+  readonly: { type: Boolean, default: false },
+  required: { type: Boolean, default: false },
+  validType: { type: String, default: '' },
+  customRules: { type: Object, default: undefined }
 })
 
-const emit = defineEmits(['update:modelValue', 'change'])
+const emit = defineEmits(['update:modelValue', 'change', 'validate'])
 
-// ==========================================
-// 💡 多國語言 (i18n) 設定區塊
-// ==========================================
-// 1. 設定 WangEditor 內建工具列的語言
+import { validate as runValidate } from '@/composables/useValidator'
+
+
 const currentLang = (localStorage.getItem('user-language') || 'zh-tw').toLowerCase()
 if (currentLang.startsWith('en') || currentLang === 'ja-jp' || currentLang === 'ko-kr') {
   i18nChangeLanguage('en') // 非中文語系退回英文
@@ -43,35 +45,22 @@ if (currentLang.startsWith('en') || currentLang === 'ja-jp' || currentLang === '
   i18nChangeLanguage('zh-CN') // WangEditor 預設原生支援簡中 (繁中亦通用此介面配置)
 }
 
-// 2. 取得 EEP 字典檔，用於 Placeholder 替換
 const $this = pageUtils({}, {})
 const lm = computed(() => $this.localeMessages?.value || {})
 
-// 容器 Refs
 const toolbarContainer = ref(null)
 const editorContainer = ref(null)
 const editorRef = shallowRef(null)
 let isUpdating = false 
 
-// ==========================================
-// 舊資料相容邏輯
-// ==========================================
 const parseIncomingHtml = (val) => {
-  let safeValue = val || ''
-  return safeValue.replace(/onclick="\$\.showPreviewDialog\('(.+?)'\)"/g, '_src="$1" src="$1"')
+  let safe = val || ''
+  safe = safe.replace(/\s+onclick="\$\.showPreviewDialog\('[^']*'\)"/g, '')
+  safe = safe.replace(/\s+_src="[^"]*"/g, '')
+  return safe
 }
+const formatOutgoingHtml = (val) => val || ''
 
-const formatOutgoingHtml = (val) => {
-  let content = val || ''
-  content = content.replace(/<img [^>]*src="([^"]+)"[^>]*>/g, (match, src) => {
-    return `<img _src="${src}" onclick="$.showPreviewDialog('${src}')" src="${src}" />`
-  })
-  return content
-}
-
-// ==========================================
-// 初始化編輯器
-// ==========================================
 onMounted(() => {
   const uploadUrl = props.imageFolder 
     ? `../../file/umimage?f=${props.imageFolder}` 
@@ -81,7 +70,6 @@ onMounted(() => {
     selector: editorContainer.value,
     html: parseIncomingHtml(props.modelValue),
     config: {
-      // 💡 動態綁定字典檔的 "在此輸入內容"
       placeholder: lm.value.inputContent || '請輸入內容...', 
       readOnly: props.disabled || props.readonly,
       MENU_CONF: {
@@ -134,9 +122,6 @@ onMounted(() => {
   })
 })
 
-// ==========================================
-// 屬性監聽與銷毀
-// ==========================================
 watch(() => props.modelValue, (newVal) => {
   if (isUpdating || !editorRef.value) return
   
@@ -162,9 +147,22 @@ onBeforeUnmount(() => {
   }
 })
 
+function validate () {
+  const v = props.modelValue || ''
+  let msg = ''
+  if (props.required && String(v).replace(/<[^>]*>/g, '').trim() === '') {
+    msg = 'required'
+  } else if (props.validType && v) {
+    msg = runValidate(props.validType, String(v), props.customRules)
+  }
+  emit('validate', msg)
+  return msg
+}
+
 defineExpose({
   getValue: () => formatOutgoingHtml(editorRef.value?.getHtml()),
-  setValue: (val) => editorRef.value?.setHtml(parseIncomingHtml(val))
+  setValue: (val) => editorRef.value?.setHtml(parseIncomingHtml(val)),
+  validate
 })
 </script>
 

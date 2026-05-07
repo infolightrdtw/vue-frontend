@@ -24,6 +24,7 @@
 <script setup>
 import { ref, computed, inject } from 'vue'
 import dataUtils from '@/utils/dataApi'
+import { validate as runValidate } from '@/composables/useValidator'
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
@@ -33,10 +34,14 @@ const props = defineProps({
   whereStr: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
   readonly: { type: Boolean, default: false },
+  required: { type: Boolean, default: false },
+  validType: { type: String, default: '' },
+  customRules: { type: Object, default: undefined },
   rowData: { type: Object, default: () => ({}) }
 })
 
-const emit = defineEmits(['update:modelValue', 'change', 'before-load'])
+const emit = defineEmits(['update:modelValue', 'change', 'before-load', 'validate'])
+const errorMessage = ref('')
 
 // --- 2. State ---
 const wrapperRef = ref(null)
@@ -54,11 +59,6 @@ const filteredOptions = computed(() => {
     String(item).toLowerCase().includes(query)
   )
 })
-
-function parseRemote(remoteName) {
-  const seg = (remoteName || '').split('.')
-  return { module: seg[0] || '', command: seg[1] || '' }
-}
 
 function getParsedWhereItems() {
   let items = props.whereItems
@@ -86,18 +86,14 @@ async function fetchRemoteData(remoteName, finalWhereItems) {
   const rn = remoteName || props.remoteName
   if (!rn) return []
 
-  const { module, command } = parseRemote(rn)
   const { loadData: apiLoadData } = dataUtils(rn)
-
+  // payload aligned with jQuery (mirrors Combobox fix — whereItems must be an
+  // array, never null, otherwise dataApi stringifies to 'null' → backend 400)
   const body = {
-    mode: 'getDataset',
-    module,
-    command,
-    remoteName: rn,
-    whereItems: finalWhereItems || props.whereItems || null,
-    whereStr: props.whereStr 
+    total: false,
+    whereStr: props.whereStr || '',
+    whereItems: Array.isArray(finalWhereItems) ? finalWhereItems : []
   }
-
   const r = await apiLoadData(body)
   const data = r && (r.rows || r.items || r.data || r)
   return Array.isArray(data) ? data : []
@@ -135,13 +131,30 @@ const handleFocus = async () => {
 
 const handleBlur = () => {
   isOpen.value = false
+  validate()
 }
 
 const selectItem = (item) => {
   emit('update:modelValue', item)
   emit('change', item)
   isOpen.value = false
+  validate()
 }
+
+function validate () {
+  const value = props.modelValue
+  let msg = ''
+  if (props.required && (value === null || value === undefined || value === '')) {
+    msg = 'required'
+  } else if (props.validType && value) {
+    msg = runValidate(props.validType, String(value), props.customRules)
+  }
+  errorMessage.value = msg
+  emit('validate', msg)
+  return msg
+}
+
+defineExpose({ validate, load })
 </script>
 
 <style scoped>

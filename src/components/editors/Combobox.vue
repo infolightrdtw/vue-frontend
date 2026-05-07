@@ -277,7 +277,44 @@ onMounted(() => {
   })
 })
 
-defineExpose({ load, loadData, validate })
+function getValue () {
+  return props.modelValue ?? null
+}
+function setValue (v: unknown) {
+  emit('update:modelValue', v as never)
+}
+function getText () {
+  const v = props.modelValue
+  if (v == null || v === '') return ''
+  const items = internalItems.value || []
+  const vf = (props as any).valueField || 'value'
+  const tf = (props as any).textField || 'text'
+  const found = items.find((it: any) => it && (it[vf] === v || it.value === v))
+  return found ? String((found as any)[tf] ?? (found as any).text ?? '') : String(v)
+}
+
+function setWhere (_where: unknown) {
+  load()
+}
+
+defineExpose({
+  load,
+  loadData,
+  validate,
+
+  getText,
+  getValue,
+  setValue,
+  setWhere,
+  options: () => ({
+    remoteName: (props as any).remoteName,
+    valueField: (props as any).valueField,
+    textField:  (props as any).textField,
+    items:      internalItems.value,
+    multiple:   (props as any).multiple,
+    allowEmpty: (props as any).allowEmpty
+  })
+})
 </script>
 
 <style scoped>

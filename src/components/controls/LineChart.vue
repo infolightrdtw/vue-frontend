@@ -143,8 +143,14 @@ onMounted(() => {
 })
 
 defineExpose({
-  reload: loadData,
-  getChart: () => chartRef.value
+  reload:   loadData,
+  getChart: () => chartRef.value,
+
+  load:     loadData,
+  loadData: (data: any) => { chartData.value = Array.isArray(data) ? data : (data?.rows ?? data?.data ?? []) },
+  setWhere: (_w: any) => loadData(),
+  resize:   () => chartRef.value?.resize?.(),
+  options:  () => chartOptions.value
 })
 </script>
 
