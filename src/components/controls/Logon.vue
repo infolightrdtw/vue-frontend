@@ -60,6 +60,7 @@ import { useRouter } from 'vue-router';
 
 import messageUtils from '@/utils/messageApi';
 import logonUtils from '@/utils/logonApi';
+import mainUtils from '@/utils/mainApi';
 
 
 const props = defineProps({
@@ -90,6 +91,8 @@ const {
   databases,
   solutions
 } = logonUtils(localeMessages);
+
+const { logout: doLogout } = mainUtils();
 
 const isVisible = ref(false);
 
@@ -126,9 +129,9 @@ const doLogon = async () => {
 
 const goToAccount = (type) => {
   cancel();
-  
+
   router.push({
-    path: '/account', 
+    path: '/account',
     query: {
       type: type,
       designer: props.designer,
@@ -138,9 +141,21 @@ const goToAccount = (type) => {
   });
 };
 
+const logout = async () => {
+  await doLogout();
+  window.sessionStorage.removeItem('clientInfo');
+  window.location.href = `/logon${window.location.search}`;
+};
+
+const changePwd = () => {
+  window.location.href = '/account?type=changePwd';
+};
+
 defineExpose({
   show,
-  cancel
+  cancel,
+  logout,
+  changePwd
 });
 </script>
 

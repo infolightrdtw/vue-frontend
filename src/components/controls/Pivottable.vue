@@ -1,7 +1,7 @@
 <template>
   <div class="pvt-wrapper" :style="wrapperStyle">
     <table class="pvtUi" cellpadding="0" cellspacing="0">
-      
+      <tbody>
       <tr>
         <td class="pvt-control-area pvt-border-right pvt-border-bottom" style="width: 120px;">
           <select class="pvt-input w-100" v-model="ui.renderer">
@@ -107,6 +107,7 @@
           </div>
         </td>
       </tr>
+      </tbody>
     </table>
   </div>
 </template>
