@@ -7,7 +7,9 @@ import VueRouter from 'unplugin-vue-router/vite'
 export default defineConfig({
     base: '/',
     plugins: [
-        VueRouter({}),
+        VueRouter({
+            exclude: ['**/SOLUTION1/**']
+        }),
         vue(),
         Components({
             dirs: ['src/components', 'src/html'],

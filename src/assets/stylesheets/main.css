@@ -71,7 +71,7 @@ body{
 	background:  #FFFFFF url(../js/easyui/themes/gray/images/combo_arrow.png) no-repeat center center;
 }
 
-#layoutMain .layout-panel-north .combo-arrow: hover{
+#layoutMain .layout-panel-north .combo-arrow:hover{
 	background-color: #FFFFFF;
 }
 

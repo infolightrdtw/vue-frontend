@@ -104,8 +104,8 @@ export default function (lMessages: any) {
     }
 
     onMounted(() => {
-        loadDatabases()
-        loadSolutions();
+        loadDatabases().catch(e => { errorMessage.value = e?.response?.data?.error || e?.message || String(e) })
+        loadSolutions().catch(e => { errorMessage.value = e?.response?.data?.error || e?.message || String(e) })
     })
 
     async function loadDatabases() {

@@ -9,7 +9,7 @@ export default function () {
     const localeMessages = ref({})
 
     onMounted(() => {
-        loadMessage()
+        loadMessage().catch(() => { /* localeMessages stays {}; UI will fall back to keys */ })
     })
 
     async function loadMessage() {
