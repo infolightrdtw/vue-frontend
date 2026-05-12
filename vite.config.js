@@ -34,5 +34,16 @@ export default defineConfig({
             }
         },
         allowedHosts: ['eepcloud.infolight.com']
+    },
+    preview: {
+        host: '0.0.0.0',
+        port: 4173,
+        proxy: {
+            '/api': {
+                target: 'https://localhost:44368',
+                changeOrigin: true,
+                secure: false
+            }
+        }
     }
 })
