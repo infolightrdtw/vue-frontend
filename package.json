@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "preview": "vite preview --port 4173",
     "serve": "serve -s dist",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -12,7 +13,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:real": "cross-env-shell E2E_REAL=1 playwright test"
+    "test:e2e:real": "cross-env-shell E2E_REAL=1 playwright test",
+    "test:e2e:preview": "cross-env-shell E2E_PREVIEW=1 E2E_REAL=1 playwright test"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
