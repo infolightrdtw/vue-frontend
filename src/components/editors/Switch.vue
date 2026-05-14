@@ -198,7 +198,7 @@ defineExpose({
 
 /* ON state */
 .lcs-switch.lcs-on {
-    background: #4b8df8;
+    background: var(--theme-primary);
     box-shadow: 0 0 2px #579022 inset;
 }
 

@@ -1,3 +1,13 @@
+/* 主題變數預設值（default 主題）。vue_*.css 載入後會覆寫這些值；
+   放在這裡確保 Logon 等 Main 外的頁面也有可用的顏色變數。 */
+:root {
+  --theme-title-grad-start: #368dff;
+  --theme-title-grad-end: #000ad3;
+  --theme-primary: #000ad3;
+  --theme-table-bg: #d6ecff;
+  --theme-focus-ring: rgba(0, 10, 211, 0.25);
+}
+
 body{
 	margin: 0;
 	font-family: "Arial","Microsoft YaHei","黑体","宋体",sans-serif !important;

@@ -191,7 +191,7 @@ onMounted(() => loadTreeData());
 }
 
 .datagrid-title {
-  background-color: #dfc2f2; 
+  background-color: var(--theme-table-bg);
   padding: 10px 15px;
   margin: 0;
   color: #333;

@@ -165,7 +165,7 @@ body,
 .form-btn:hover,
 .form-btn:focus,
 .form-btn.active {
-    color: #4b8df8
+    color: var(--theme-primary)
 }
 
 .ios-table-wrapper {
@@ -196,7 +196,7 @@ body,
 
 .datagrid-title {
     padding: 5px;
-    background-color: #428bca;
+    background-color: var(--theme-primary);
     color: #fff;
     font-size: 18px;
 }
@@ -223,8 +223,8 @@ body,
 .gantt-toolitem .gantt-btn,
 .dataform-toolitem .dataform-btn {
     color: #fff;
-    background-color: #428bca;
-    border-color: #357ebd
+    background-color: var(--theme-primary);
+    border-color: var(--theme-primary)
 }
 
 .datagrid-toolitem .datagrid-btn:hover,
@@ -234,8 +234,8 @@ body,
 .dataform-toolitem .dataform-btn:hover,
 .dataform-toolitem .dataform-btn:focus {
     color: #fff;
-    background-color: #3071a9;
-    border-color: #285e8e
+    background-color: var(--theme-primary);
+    border-color: var(--theme-primary)
 }
 
 div.page {
@@ -304,7 +304,7 @@ td.datagrid-command > .datagrid-btn {
 }
 
 td.datagrid-command > .datagrid-btn:hover {
-    color: #3071a9
+    color: var(--theme-primary)
 }
 
 .bootstrap-datagrid.table-simple > tbody > tr > td.datagrid-command > .datagrid-btn{
@@ -354,7 +354,7 @@ td.datagrid-command > .datagrid-btn[command="delete_row"] {
 }
 
 .bootstrap-editgrid > .bootstrap-datagrid > thead > tr{
-    background-color:#4b8df8;
+    background-color: var(--theme-primary);
     color:#fff;
     height:40px;
 }
@@ -368,12 +368,12 @@ td.datagrid-command > .datagrid-btn[command="delete_row"] {
 .bootstrap-form .modal-header,
 .refval-modal .modal-header {
     border-radius: 5px 5px 0 0;
-    background: #4b8df8;
+    background: var(--theme-primary);
     padding: 8px 15px;
 }
 
 .bootstrap-form .panel-heading {
-    background: #4b8df8
+    background: var(--theme-primary)
 }
 
 .bootstrap-form .form-group {
@@ -410,7 +410,7 @@ div.fuzzy {
 }
 
 .list-item.selected {
-    background: #d9edf7
+    background: var(--theme-table-bg)
 }
 
 .tab-content {
@@ -444,7 +444,7 @@ div.fuzzy {
 }
 
 .options-div .btn.active {
-    background-color: #3071a9;
+    background-color: var(--theme-primary);
     color: #fff;
     text-shadow: none;
 }
@@ -459,7 +459,7 @@ div.fuzzy {
 }
 
 .slider-horizontal .slider-selection {
-    background: #89cdef
+    background: var(--theme-table-bg)
 }
 
 .bootstrap-form .signature-btn {
@@ -507,7 +507,7 @@ div.fuzzy {
 }
 
 .bootstrap-tree .node-selected{
-    background-color: #428bca;
+    background-color: var(--theme-primary);
     color: #fff;
 }
 
@@ -630,7 +630,7 @@ div.fuzzy {
     font-family: 'arial';
     line-height: 40px;
     background-color: white;
-    color: #004ea2;
+    color: var(--theme-primary);
     cursor: pointer;
     transition: all .4s ease;
 }
@@ -658,7 +658,7 @@ div.fuzzy {
 
 .image-box:hover .image-text {
     color: white;
-    background-color: #4a8bd1;
+    background-color: var(--theme-primary);
 }
 
 .thumbelina-but.horiz{    
@@ -697,16 +697,16 @@ div.fuzzy {
 
 .bootstrap-shoppingcart{
     color: #fff;
-    background-color: #428bca;
-    border-color: #357ebd
+    background-color: var(--theme-primary);
+    border-color: var(--theme-primary)
 }
 .bootstrap-shoppingcart:hover{
     color: #fff;
-    background-color: #3071a9;
-    border-color: #285e8e;
+    background-color: var(--theme-primary);
+    border-color: var(--theme-primary);
 }
 .bootstrap-shoppingcart .badge{
-    color: #428bca;
+    color: var(--theme-primary);
     background-color: #fff;
 }
 
@@ -724,14 +724,14 @@ div.fuzzy {
 
 .cart-popover .popover-title{
     padding: 5px;
-    background-color: #428bca;
+    background-color: var(--theme-primary);
     color: #fff;
     font-size: 18px;
 }
 
 .cart-popover .input-group-addon{
     cursor: pointer;
-    background-color: #428bca;
+    background-color: var(--theme-primary);
     color: #fff;
 }
 

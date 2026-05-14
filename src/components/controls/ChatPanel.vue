@@ -423,7 +423,7 @@ defineExpose({
   max-width: 80%;
   word-wrap: break-word;
 }
-.user .chat-message { background-color: #d9edf7; float: right; }
+.user .chat-message { background-color: var(--theme-table-bg); float: right; }
 .ai .chat-message, .example .chat-message { background-color: #fff; border: 1px solid #ddd; float: left; }
 .error .chat-message { background-color: #f2dede; color: #a94442; float: left; }
 .chat-icon { margin: 10px 5px; font-size: 1.2em; }

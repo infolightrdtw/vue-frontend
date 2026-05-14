@@ -190,6 +190,6 @@ defineExpose({ validate, load })
 .dropdown-item:hover,
 .dropdown-item:focus {
   background-color: #f8f9fa;
-  color: #0d6efd;
+  color: var(--theme-primary);
 }
 </style>

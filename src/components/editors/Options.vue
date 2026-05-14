@@ -611,8 +611,8 @@ onMounted(() => {
 
 .btn-check:checked + .btn {
   color:#fff;
-  border-color: var(--bs-primary, #0d6efd);
-  background-color: var(--bs-primary, #0d6efd);
+  border-color: var(--theme-primary);
+  background-color: var(--theme-primary);
 }
 
 .datagrid-btn { border-color:#ced4da; background:#f8f9fa }

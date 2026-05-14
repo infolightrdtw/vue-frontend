@@ -26,7 +26,7 @@ body {
 }
 
 a {
-    color: #337ab7;
+    color: var(--theme-primary);
     text-decoration: none;
 }
 
@@ -125,7 +125,7 @@ textarea.form-control{
 .table > thead > tr.info > th,
 .table > tbody > tr.info > th,
 .table > tfoot > tr.info > th {
-    background-color: #d9edf7;
+    background-color: var(--theme-table-bg);
 }
 
 .table > thead > tr > th{
@@ -256,7 +256,7 @@ fieldset > legend
 }
 
 .nav-pills a.active>.badge {
-    color: #337ab7;
+    color: var(--theme-primary);
     background-color: #fff;
 }
 
