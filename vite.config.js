@@ -8,7 +8,7 @@ export default defineConfig({
     base: '/',
     plugins: [
         VueRouter({
-            exclude: ['**/SOLUTION1/**']
+
         }),
         vue(),
         Components({
