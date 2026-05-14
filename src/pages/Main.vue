@@ -89,13 +89,26 @@
                 <div class="divToggle">
                     <span :class="toggleSideCls" @click="toggleSide"></span>
                 </div>
+                <div v-show="isSideShow" class="menu-search-wrap">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text menu-search-icon">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input v-model="menuSearch"
+                               type="search"
+                               class="form-control menu-search-input"
+                               placeholder="搜尋選單..." />
+                    </div>
+                    <div v-if="menuSearch && !hasAnyMatch" class="menu-search-empty">找不到符合的項目</div>
+                </div>
                 <div v-show="isSideShow" class="panel-group accordion" id="menu" role="tablist" aria-multiselectable="true">
                     <MenuItem v-for="(menu, index) in menus"
                               :key="menu.id || index"
                               parentMenu="menu"
                               :item="menu"
                               :active="index == 0"
-                              :activeTabId="activeTabId" />
+                              :activeTabId="activeTabId"
+                              :searchQuery="menuSearch" />
                 </div>
             </aside>
 
@@ -132,6 +145,7 @@
     import { ref, computed, onMounted, onUnmounted } from 'vue'
     import axios from 'axios'
     import pageUtils from '@/utils/pageApi'
+    import { isMenuItemVisible } from '@/utils/menuSearch'
     import ChangePassword from './ChangePassword.vue'
     import SignatureModal from '@/pages/SignatureModal.vue'
     import MyFavorites from '@/pages/MyfavorModal.vue'
@@ -163,6 +177,11 @@
     } = mainUtils()
 
     const isSideShow = ref(true)
+    const menuSearch = ref('')
+    const hasAnyMatch = computed(() => {
+        if (!menuSearch.value) return true
+        return menus.some((m: any) => isMenuItemVisible(m, menuSearch.value))
+    })
 
     function toggleSide() {
         isSideShow.value = !isSideShow.value
@@ -509,5 +528,48 @@
     .dropdown-menu {
         right: 0;
         min-width: 100px;
+    }
+
+    .menu-search-wrap {
+        padding: 0 10px 8px;
+    }
+
+    .menu-search-icon {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-right: none;
+    }
+
+    .menu-search-input {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+        .menu-search-input::placeholder {
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .menu-search-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border-color: #00e5ff;
+            box-shadow: 0 0 0 0.15rem rgba(0, 229, 255, 0.25);
+        }
+
+    .menu-search-empty {
+        margin-top: 6px;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.65);
+        text-align: center;
+    }
+
+    .sidebar :deep(.menu-search-hit) {
+        background: #ffeb3b;
+        color: #002b93;
+        padding: 0 2px;
+        border-radius: 2px;
+        font-weight: bold;
     }
 </style>
