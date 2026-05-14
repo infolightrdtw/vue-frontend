@@ -1,4 +1,5 @@
-@echo off
+﻿@echo off
+chcp 65001 >nul
 setlocal ENABLEDELAYEDEXPANSION
 
 :: 切到此批次檔所在的專案目錄
