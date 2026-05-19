@@ -88,7 +88,7 @@
             </thead>
 
             <tbody>
-                <tr v-for="(row, index) in rows" :class="trCls(index)">
+                <tr v-for="(row, index) in rows" :class="trCls(index)" :style="rowStyle(index, row)">
                     <td v-if="showCheckbox" class="rowcheck">
                         <input type="checkbox" :checked="isRowChecked(index)" @click.stop="toggleCheck(index)" />
                     </td>
@@ -498,6 +498,14 @@
     })
 
     const trCls = index => selectedIndex.value === index ? 'info' : ''
+    const rowStyle = (index, row) => {
+        if (!props.rowStyler) return undefined
+        try {
+            return $.invoke(props.rowStyler, index, row) || undefined
+        } catch (e) {
+            return undefined
+        }
+    }
     const tdCls = c => {
         let cls = invalidColumn.value === c.field ? 'error' : '';
         if (c.format === 'drilldown') {
