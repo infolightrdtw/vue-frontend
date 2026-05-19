@@ -51,8 +51,7 @@
 | PageList             | Int        | 控制分頁顯示的資料筆數，設定除了 10 以外，例如：`20,30,50,100` 讓使用者來選擇                                                                                                                                                                                                                                                          |
 | Title                | string     | Grid 顯示標題                                                                                                                                                                                                                                                                                                 |
 | Height               | Int        | Grid 高度，不設定時代表自動高度（預設）                                                                                                                                                                                                                                                                                    |
-| RowStyler            | string     | 事件 `rowStyler(index, row)`：資料列的樣式事件，每筆 row 顯示時的觸發，利用此事件傳回樣式。`index` 為 row 的次序，`row` 為資料內容，`row.ColumnName` 為欄位內容。注意，rowStyler 可控制 ViewCommandVisible/EditCommandVisible/DeleteCommandVisible 的 icon 動態顯示，並指引參考附錄 6 案例 15                                                                                  |
-|                      |            | 若要改變 `rowStyler` 的顏色，可以使用 `color:` 與 `background-color:`，例如：`return 'background-color:red;color:black;';`                                                                                                                                                                                                 |
+| RowStyler            | string     | 事件 `rowStyler(index, row)`：每列顯示時觸發，回傳 CSS 字串套到該列 `<tr :style>`，例如 `return 'background-color:#f8d7da;color:#842029;'`。`index` 為列次序，`row` 為該列資料。命名為 `<gridId>_rowStyler`，詳見 §15。注意：此事件只控制列樣式，**不能**控制命令鈕逐列顯隱（命令鈕在 Vue 是整 grid 布林）。 |
 | OnBeforeLoad         | string     | 事件 `onBeforeLoad(param)`：載入資料前觸發。`param` 為參數，如改變 `param.whereStr` 可以固定加上 `whereStr` 指定的條件作為過濾；`param.sort` 為排序欄位；`param.order` 為 `"desc"` 或 `"asc"`。使用 `onBeforeLoad` 事件時最好配合 `AlwaysClose=True`，避免預設的資料條件衝突。`return true` 代表會執行載入，`return false` 代表取消。另外若要控制查詢欄位的預設值，請不要使用 `onBeforeLoad`，改用 `onLoad` 即可 |
 | OnLoad               | string     | 事件 `onLoad(data)`：資料載入完成後觸發。`data.rows` 為資料內容，`data.rows.length` 為當頁資料數，`data.total` 為資料總筆數。注意：在 `onLoad` 中最好不要執行 `load` / `lodaData` / `setWhere` 方法，會造成遞迴；若一定要用，須用 `loaded` 變數（true/false）控制僅第一次執行                                                                                                      |
 | OnLoadError          | string     | 事件 `onLoadError(msg)`：資料載入錯誤時觸發，`msg` 為錯誤訊息內容                                                                                                                                                                                                                                                             |
@@ -390,21 +389,104 @@ Columns的Collection，其屬性如下:
 
 用來顯示或編輯一筆資料的 Form 組件，欄位定義於 **formColumn** 中。
 
-### dataform 組成的 class
+### dataform 組成的 class（Vue 實際 DOM，非 RWD）
 
-- 表頭標題：`modal-title`
-- 表尾：`modal-footer`
-- Navigator：`pagination`
-- OK 按鈕：`form-submit`
-- Cancel 按鈕：`form-close`
+Vue `DataForm` 是 Bootstrap card，**沒有** RWD 的 `modal-title`/`modal-footer`/`form-submit`/`form-close`/`pagination`：
 
-### DataForm 欄位(Columns)的命名規則
+- 整體根：`.bootstrap-form` → `.df-modal`（card）
+- 表頭標題：`.card-header h5`
+- 表尾：`.card-footer`（按鈕容器 `.card-footer .ms-auto.d-flex`）
+- 確定（存檔）按鈕：`.card-footer .btn-primary`
+- 取消按鈕：`.card-footer .btn-default`
+- 欄位編輯區容器：`.df-input.form-editor`（每欄一個，**無逐欄位 id**）
 
-DataForm中的Columns的取值與設值或對其Editor的操作，必須取用Columns的id來操作，id的命名規則如下:
-'DataForm_id'+'_'+fieldName
-如: 
-DataForm Id為dfMaster，fieldName為'名稱'，id為"dfMaster_名稱"
-DataFrom Id為dataform1，fieldName為'CustName'，id為'dataform1_CustName'
+### DataForm 欄位(Columns)的操作規則（**與 RWD 不同，請務必照這節**）
+
+Vue 模式的 DataForm 欄位**沒有** `DataForm_id + '_' + fieldName` 這種逐欄位 DOM id／逐欄位元件。
+（RWD 才有 `#dfMaster_客戶編號`；在 Vue 用 `組件名稱:"dfMaster_客戶編號"` 會回報「元件不存在」而失敗。）
+
+**A. 改變某欄位的「編輯器型態／屬性」（如 textbox 改成開窗選單 refval）：**
+這是對「共用 `.json`」的設計時異動，做法**與 RWD 完全相同**——修改 DataForm 元件本身的 `columns`，不是去動某個逐欄位元件：
+
+- `動作`：`更改`
+- `組件名稱`：DataForm 的 id（例：`dfMaster`）
+- `組件類別`：`dataform`
+- `屬性設定.columns`：只列要改的欄位，`editor.type` 指定新型態；refval 必須一併給 `remoteName / valueField / textField` 才可用（只給 `type:"refval"` 雖會切換型態，但開窗無資料來源）。
+
+範例（把「客戶編號」改成開窗選單 refval）：
+
+```json
+[
+  {
+    "動作": "更改",
+    "組件名稱": "dfMaster",
+    "組件類別": "dataform",
+    "屬性設定": {
+      "columns": [
+        {
+          "field": "客戶編號",
+          "editor": {
+            "type": "refval",
+            "remoteName": "客戶資料表.ref_客戶資料表",
+            "valueField": "客戶編號",
+            "textField": "客戶名稱",
+            "valueTitle": "客戶編號",
+            "textTitle": "客戶名稱"
+          }
+        }
+      ]
+    },
+    "事件程式": "",
+    "說明": "將 dfMaster 的「客戶編號」欄位編輯器由 textbox 改為 refval 開窗選單"
+  }
+]
+```
+
+> 機制說明：後端把 `Column.Editor` 以 `{type:'<C#類別名camelCase>', options:{...}}` 序列化給 Vue（`ObjectExtensions.GetDataOptions`），`DataForm.vue` 再以 `editor.type` / `editor.options` 取用。`editor.type` 取自載入後的 Editor **物件類別**，因此 `.json` 必須讓載入器把該欄位的 Editor 重建為 Refval（用上面「`組件類別:dataform` + `columns[].editor`」格式即可，與 RWD 同一條路徑；用錯成 `組件名稱:"dfMaster_客戶編號"` 或把 refval 屬性平鋪在 `屬性設定` 頂層都不會生效，產出的 `.vue` 仍是 textbox）。
+
+**B. 執行期在 `.ts` user script 取／設某欄位的值：**
+用 ref，不要用 id：
+
+```ts
+const row = $dfMaster.value.getRow();      // 取整列（JSON 複本）
+const cust = row.客戶編號;                  // 取單一欄位
+$dfMaster.value.currentRow.客戶編號 = 'C001'; // 設值（currentRow 為 reactive formState）
+```
+
+**C. 預設值／必填／驗證／自動編號（重要：是「獨立組件」，不是 dataform 欄位屬性）**
+
+`defaultValue`、`required`、`validType`、自動編號**不能**寫在 dataform 的 `columns[]` 上（Column 模型只有 `title/field/editor/span/hidden/newRow`，寫上去套用時會回報「屬性不存在」、RenderVue 也會忽略）。
+它們由**獨立組件**承載，透過 `BindingObjectID`／`BindingObject` 綁到該 DataForm／DataGrid（後端 `DataForm.SetColumnOptions` 會把這些組件的設定併回欄位）：
+
+| 需求 | 組件類別 | 關鍵屬性 |
+|---|---|---|
+| 預設值（常數／系統變數／方法／主檔帶入） | `default` | `BindingObjectID`=DataForm id；`columns:[{field, defaultValue}]` |
+| 必填／格式驗證 | `validate` | `BindingObjectID`=DataForm id；`columns:[{field, required, validType}]` |
+| 明細序號自動編號 | `autoseq` | `BindingObject`=DataGrid id；`field/numDig/startValue/step` |
+
+`defaultValue` 字串格式（附錄 8）：`constant['值']`、`varaible['user']`（登入者）、`varaible['today']`（今天）、`function['方法名']`、`parent['主檔欄位']`。
+
+範例（「新增時建檔人請預設為登入者」——dfMaster 已存在、其 Default 組件若不存在則用 `動作:新增`，已存在則 `動作:更改`）：
+
+```json
+[
+  {
+    "動作": "新增",
+    "組件名稱": "dfMasterDefault",
+    "組件類別": "default",
+    "屬性設定": {
+      "bindingObjectID": "dfMaster",
+      "columns": [
+        { "field": "建檔人", "defaultValue": "varaible['user']" }
+      ]
+    },
+    "事件程式": "",
+    "說明": "新增 Default 組件，綁定 dfMaster，建檔人預設為登入者"
+  }
+]
+```
+
+> 套用機制：`jquery.infolight.designer.js` 的 `updateControl`／`mergeObj` 對 `columns` 陣列「找不到該欄位就 push 新增、找到就合併既有 key」。Default/Validate 的 column 模型本來就有 `defaultValue`/`required`/`validType`，故走獨立組件可正常套用；寫在 dataform 欄位上才會被判「不存在」。
 
 ### 屬性
 
@@ -2950,57 +3032,91 @@ function dfMaster_onLoad() {
 
 ### 7. DataForm 下面的按鈕要改文字內容
 
-優先使用 DataForm 的 `submitText` / `cancelText` 屬性（若 designer 已支援）；否則於 onMounted 透過 ref 取得根 DOM 改 `textContent`：
+確定／取消鈕文字來自系統語系，於 `dfMaster_onLoad` 等 DOM 繪出後改 `textContent`。
+Vue DataForm 的鈕在 `.card-footer`：確定＝`.btn.btn-primary`、取消＝`.btn.btn-default`（**不是** RWD 的 `.form-submit`/`.form-close`）：
 
-```js
-import { onMounted } from 'vue';
-
-onMounted(() => {
-    const el = $dfMaster.value?.$el;
-    if (!el) return;
-    const submitBtn = el.querySelector('.form-submit');
-    const closeBtn  = el.querySelector('.form-close');
-    if (submitBtn) submitBtn.textContent = '存檔';
-    if (closeBtn)  closeBtn.textContent  = '放棄';
-});
+```ts
+function dfMaster_onLoad() {
+    setTimeout(() => {
+        const el = $dfMaster.value?.$el as HTMLElement;
+        if (!el) return;
+        const submitBtn = el.querySelector('.card-footer .btn-primary');
+        const closeBtn  = el.querySelector('.card-footer .btn-default');
+        if (submitBtn) submitBtn.textContent = '存檔';
+        if (closeBtn)  closeBtn.textContent  = '放棄';
+    }, 100);
+}
 ```
 
-### 8. DataForm 欄位後面增加一個 Button 或連結
+> **重要架構限制（先讀這段，再看以下所有案例）**
+>
+> Vue 前端的 `DataForm` **只有一個無名預設 slot**，**沒有** `#after-<欄位>`、`#footer-prepend` 等具名 slot；`Card` 等元件也沒有。
+> JSON → `.vue` 由後端 `RWDPage.RenderVue()` 產生：你寫的程式只會以 **user script（`.ts`）原樣注入 `<script setup>`**，**無法**產生 `<template>` 內的 slot 標記；不在 `RWD_Vue_表單組件屬性.md` 列出的屬性 `RenderVue()` 會**直接忽略**（所以把按鈕塞成 dfMaster 的 `footer-prepend` 屬性，按鈕永遠不會出現）。
+>
+> 因此「在欄位後面加按鈕／在確定鈕前加按鈕／欄位後放連結」這類自訂 UI，**一律寫進 `.ts` user script**，在 `<id>_onLoad` 事件（或 `onMounted`）裡用 DOM 建立元素並掛事件 —— 這是 Vue 模式唯一能通過 pipeline 的做法（等同 RWD 模式 `RWD_表單組件屬性.md` 附錄6 #8+#9，只是改用 Vue runtime）。
+> **不要**用 `動作=新增`、`組件名稱=dfMaster` 去重建已存在的元件（會與既有 dfMaster 衝突報錯）；自訂行為的 `組件名稱` 留空，全部寫在 `事件程式`。
 
-直接在 template 與該欄位排版鄰接位置放 Vue 元素，**不要用 jQuery `insertAfter` 操作 DOM**：
+### 8. DataForm 電子郵件欄位後面加一顆「發送EMAIL」按鈕並呼叫 Server Method
 
-```vue
-<template>
-  <DataForm ref="$dfMaster" ...>
-    <template #after-指定欄位>
-      <a class="ms-2" style="cursor:pointer" @click="onLinkClick">請假狀況</a>
-    </template>
-  </DataForm>
-</template>
+DataForm 欄位沒有固定 `id`，以 `label` 文字定位欄位的 `.df-input` 容器後插入按鈕；`dfMaster_onLoad` 觸發時 DOM 尚未繪出，沿用既有範例慣例以 `setTimeout(...,100)` 等待（或 `nextTick`）。按鈕點擊以真實的 `$this.callMethod` 非同步呼叫後端 `sendMail`：
 
-<script setup>
-function onLinkClick() {
-    // 執行指定的程式
+```ts
+// 以 label 文字找出某欄位的編輯區容器（.df-input）
+function findFieldEditor(formEl: HTMLElement, label: string): HTMLElement | null {
+    const labels = formEl.querySelectorAll('label.col-form-label');
+    for (const lb of Array.from(labels)) {
+        if ((lb.textContent || '').trim() === label) {
+            return (lb.parentElement?.querySelector('.df-input') as HTMLElement) || null;
+        }
+    }
+    return null;
 }
-</script>
+
+function dfMaster_onLoad(row) {
+    setTimeout(() => {
+        const el = $dfMaster.value?.$el as HTMLElement;
+        if (!el) return;
+        const editor = findFieldEditor(el, '電子郵件');
+        if (!editor || editor.querySelector('.js-send-mail')) return;   // 防重複插入
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-primary btn-sm ms-2 js-send-mail';
+        btn.textContent = '發送EMAIL';
+        btn.addEventListener('click', sendMail);
+        editor.appendChild(btn);
+    }, 100);
+}
+
+async function sendMail() {
+    const row = $dfMaster.value.getRow();
+    if (!row.電子郵件) {
+        $this.alert('請先輸入電子郵件', 'warning');
+        return;
+    }
+    // 第一參數為 design/server/<方案>/<模組>.json 的檔名（ServerModule）
+    const result = await $this.callMethod('ServerModule', 'sendMail', {
+        email: row.電子郵件,
+        員工編號: row.員工編號,
+        姓名: row.姓名
+    });
+    $this.alert(result || 'EMAIL 已發送', 'info');
+}
 ```
 
 ### 9. 調用後端 Server Method
 
-```js
-// 非同步調用
-function sendMail(to) {
-    $this.callMethod('ServerModule', 'sendMail', { to }, (result) => {
-        $this.alert(result, 'info');
-    });
-}
+Vue 模式只有 **非同步** 一種：`$this.callMethod(module, method, parameters)` 回傳 `Promise`，用 `await` 取結果。
+**沒有 callback 參數、也沒有 `callSyncMethod`**（RWD 模式那兩種寫法在 Vue 一律無效）。
+`module` 為 `design/server/<方案>/<模組>.json` 的檔名；錯誤已由 `callMethod` 內部 `showError` 處理。
 
-// 同步調用（會阻塞 UI，建議只在必要時使用）
-function sendMail(to) {
-    const ret = $this.callSyncMethod('ServerModule', 'sendMail', { to });
-    $this.alert(ret, 'info');
+```ts
+async function sendMail(to) {
+    const result = await $this.callMethod('ServerModule', 'sendMail', { to });
+    $this.alert(result, 'info');
 }
 ```
+
+> 函式內若要呼叫，外層需為 `async`；屬性層級事件（如 `FieldOnBlur`）也支援 `async` 函式。
 
 ### 10. 調整 DataForm 內欄位的上下間距
 
@@ -3014,22 +3130,46 @@ CSS 寫在 SFC 的 `<style scoped>`，不要用 jQuery 改：
 </style>
 ```
 
-### 11. 取得登入者的部門並隱藏指定 Tab
+### 11. 依「欄位值」或「登入者條件」連動：隱藏頁簽 / 欄位、設不可輸入、自動帶值
 
-```vue
-<template>
-  <Tabs ref="$tabMaster">
-    <Tab title="基本資料">...</Tab>
-    <Tab v-if="showSecondTab" title="進階">...</Tab>
-  </Tabs>
-</template>
+DataForm **沒有逐欄位 onChange/onShowEditor 事件**（`onShowEditor` 只在 DataGrid 直接編輯時有效）。
+連動一律用 `.ts` 對 `$dfMaster.value.currentRow`（reactive formState）做 `watch`，再呼叫已暴露的 API：
+`hideColumn(欄位)/showColumn(欄位)`、`setReadonly(bool)`（整張表）。
+`Tabs` 元件已提供 `hideTab(標題或index)` / `showTab(...)`（標題比對 `title` 或 `name`），隱藏的頁簽其按鈕與內容都會收起；若隱藏的是作用中頁簽會自動切到第一個可見頁簽。
 
-<script setup>
-import { computed } from 'vue';
-const groups = $this.getVariableValue('groups') || '';
-const showSecondTab = computed(() => groups.indexOf('99') >= 0);  // 99 部門才顯示
-</script>
+```ts
+function dfMaster_onLoad(row) {
+    // A) 依「欄位值」連動：員工狀態=離職 → 隱藏「家庭資料」頁簽；性別=女 → 兵役不可輸入
+    watch(
+        () => [$dfMaster.value?.currentRow?.員工狀態, $dfMaster.value?.currentRow?.性別],
+        ([狀態, 性別]) => {
+            if (狀態 === '離職') $tabMaster.value.hideTab('家庭資料');
+            else                 $tabMaster.value.showTab('家庭資料');
+            if (性別 === '女') $dfMaster.value.hideColumn('兵役');   // 或 setReadonly 整張表
+            else               $dfMaster.value.showColumn('兵役');
+        },
+        { immediate: true }
+    );
+
+    // B) 自動帶值：輸入「戶籍地址」後，「聯絡地址」預設成戶籍地址（空才帶，避免覆蓋使用者輸入）
+    watch(
+        () => $dfMaster.value?.currentRow?.戶籍地址,
+        (v) => {
+            const r = $dfMaster.value?.currentRow;
+            if (r && v && !r.聯絡地址) r.聯絡地址 = v;
+        }
+    );
+}
+
+// C) 依「登入者條件」（例如部門/群組）隱藏頁簽
+function dfMaster_onLoad2() {
+    const groups = $this.getVariableValue('groups') || '';
+    if (groups.indexOf('99') >= 0) $tabMaster.value.showTab('進階');
+    else                            $tabMaster.value.hideTab('進階');
+}
 ```
+
+> `watch` / `nextTick` 由 `vueRWD.js` 樣板已 import，user script 可直接用，不需自行 import。`currentRow` 是 `DataForm.vue` `defineExpose` 出來的 reactive `formState`，改它即同步畫面。`$tabMaster` 依頁面中 Tabs 的 ref 命名替換。
 
 ### 12. 在 QueryColumns 的欄位中取值與設值
 
@@ -3074,44 +3214,51 @@ function dfMaster_onLoad(row) {
 }
 ```
 
-### 15. DataGrid 控制左方更改 / 刪除 / 查看 icon 是否顯示
+### 15. DataGrid 條件樣式（rowStyler）與命令鈕顯隱
 
-請改用 GridColumn 的 row-level 條件屬性，**不要 DOM 操作 classList**：
+- **逐列樣式：用 `rowStyler` 事件**（`DataGrid.vue` 的 `rowStyle()` 會 `$.invoke(rowStyler,index,row)` 套到 `<tr :style>`）。函式回傳 CSS 字串即可，**不要用 DOM**。
+- **命令鈕顯隱：`editCommandVisible/deleteCommandVisible/viewCommandVisible` 在 Vue 是「整個 grid 的布林」**（非逐列函式）。依登入者部門等全域條件，於載入時設定其 ref 值即可；逐列差異請改用 `rowStyler` 上色呈現。
 
-```vue
-<template>
-  <DataGrid ref="$dgMaster"
-            :editCommandVisible="row => row.庫存 > row.安全庫存"
-            :deleteCommandVisible="row => row.庫存 > row.安全庫存"
-            :viewCommandVisible="row => row.庫存 > row.安全庫存" />
-</template>
+```ts
+// A) 未聯繫天數 > 50 → 整列淺紅底（rowStyler 事件，命名為 <gridId>_rowStyler）
+function dgMaster_rowStyler(index, row) {
+    if (Number(row.未聯繫天數) > 50) return 'background-color:#f8d7da;color:#842029;';
+    return '';
+}
 
-<script setup>
-// 已結案單據（FlowFlag 第 1 碼為 'Z'）禁止更改／刪除
-const isClosed = (row) => row.FlowFlag?.startsWith('Z');
-// :editCommandVisible="row => !isClosed(row)"
-// :deleteCommandVisible="row => !isClosed(row)"
-</script>
+// B) 依登入者部門，整批顯示/隱藏更改‧刪除鈕（全域布林，非逐列）
+function dgMaster_onLoad() {
+    const dept = $this.getVariableValue('groups') || '';
+    const allow = dept.indexOf('10') >= 0 || dept.indexOf('20') >= 0;
+    $dgMaster.value.editCommandVisible = allow;
+    $dgMaster.value.deleteCommandVisible = allow;
+}
 ```
+
+> 「只顯示負責業務＝登入者 / 只顯示申請人＝user」這類過濾，用 `dgMaster_onBeforeLoad(param){ param.whereStr = "負責業務=N'"+($this.getVariableValue('user'))+"'" }`（`DataGrid.vue` load 會套用 `loadParam.whereStr`）。
 
 ### 16. 在 DataForm 下方的確定按鈕前添加一個按鈕
 
-優先使用 DataForm 的 footer-prepend slot：
+footer 沒有 slot（見本章開頭限制）。確定／取消鈕在 `.card-footer` 內的 `.ms-auto.d-flex` 容器，於 `dfMaster_onLoad` 用 DOM 把自訂鈕插到它最前面：
 
-```vue
-<template>
-  <DataForm ref="$dfMaster" ...>
-    <template #footer-prepend>
-      <button class="btn btn-primary me-2" @click="onCustom">自訂按鈕</button>
-    </template>
-  </DataForm>
-</template>
-
-<script setup>
-function onCustom() {
-    // 自行定義執行的程式
+```ts
+function dfMaster_onLoad() {
+    setTimeout(() => {
+        const el = $dfMaster.value?.$el as HTMLElement;
+        const bar = el?.querySelector('.card-footer .ms-auto') as HTMLElement;
+        if (!bar || bar.querySelector('.js-custom')) return;     // 防重複插入
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-secondary me-2 js-custom';
+        btn.textContent = '自訂按鈕';
+        btn.addEventListener('click', onCustom);
+        bar.insertBefore(btn, bar.firstChild);                   // 置於「確定」鈕之前
+    }, 100);
 }
-</script>
+
+function onCustom() {
+    // 自行定義執行的程式；如需呼叫後端用 await $this.callMethod(...)
+}
 ```
 
 ### 17. alert 訊息
@@ -3125,38 +3272,43 @@ else     $this.alert('執行錯誤:' + err, 'danger');
 
 ### 18. DataForm 欄位後方插入連結、並打開另一個表單
 
-```vue
-<template>
-  <DataForm ref="$dfMaster" ...>
-    <template #after-請假年度>
-      <a class="ms-2" style="cursor:pointer" @click="openLeaveStatus">請假狀況</a>
-    </template>
-  </DataForm>
-</template>
+沿用 §8 的 `findFieldEditor`，在欄位後插入 `<a>`，點擊用 `$this.addTab` 開新 Tab。
+讀取 query 參數請用 `URLSearchParams`（pageApi **沒有** `getParameter`；加密參數才用 `$this.getEncryptParameters()`）：
 
-<script setup>
-function openLeaveStatus() {
-    const row = $dfMaster.value.getRow();
-    const user = row.申請人;
-    const year = row.請假年度;
-    // 透過 postMessage 通知主框架打開新 Tab（與 Main.vue 的 addTab 介接）
-    window.top.postMessage({
-        method: 'addTab',
-        title: '請假狀況表',
-        id: '請假狀況表',
-        src: `bootstrap/請假狀況表?year=${year}&user=${user}`
-    }, '*');
+```ts
+function dfMaster_onLoad(row) {
+    setTimeout(() => {
+        const el = $dfMaster.value?.$el as HTMLElement;
+        if (!el) return;
+        const editor = findFieldEditor(el, '請假年度');   // findFieldEditor 見 §8
+        if (!editor || editor.querySelector('.js-leave-link')) return;
+        const a = document.createElement('a');
+        a.className = 'ms-2 js-leave-link';
+        a.style.cursor = 'pointer';
+        a.textContent = '請假狀況';
+        a.addEventListener('click', openLeaveStatus);
+        editor.appendChild(a);
+    }, 100);
 }
 
-// 對方表單載入時取參數設定 Where 條件
+function openLeaveStatus() {
+    const row = $dfMaster.value.getRow();
+    $this.addTab({
+        title: '請假狀況表',
+        id: '請假狀況表',
+        src: `bootstrap/請假狀況表?year=${row.請假年度}&user=${row.申請人}`
+    });
+}
+
+// 對方表單載入時取 query 參數設定 Where 條件
 function dgMaster_onBeforeLoad(param) {
-    const year = $this.getParameter('year');
-    const user = $this.getParameter('user');
+    const q = new URLSearchParams(window.location.search);
+    const year = q.get('year');
+    const user = q.get('user');
     if (year && user) {
         param.whereStr = `年度 = '${year}' AND 員工編號='${user}'`;
     }
 }
-</script>
 ```
 
 ### 19. DataPanel 整個 Panel 設為唯讀
@@ -3189,16 +3341,28 @@ const isReadonlyPanel = ref(true);    // true = 整個 panel 唯讀
 </style>
 ```
 
-### 21. 控制 DataForm 欄位與標題顏色
+### 21. 控制 DataForm 某欄位與標題顏色
 
-同樣以 scoped CSS 處理：
+Vue DataForm 欄位沒有 id、label 也沒有 `for`，無法用 `#dfMaster_員工編號` / `label[for=...]` 選取。
+做法：在 `dfMaster_onLoad` 用 §8 的 `findFieldEditor` 找到該欄位容器，加一個標記 class，再用 scoped CSS 著色：
+
+```ts
+function dfMaster_onLoad() {
+    setTimeout(() => {
+        const el = $dfMaster.value?.$el as HTMLElement;
+        if (!el) return;
+        const editor = findFieldEditor(el, '員工編號');     // findFieldEditor 見 §8
+        if (!editor) return;
+        editor.classList.add('hl-emp');                      // 欄位內容
+        editor.closest('.row')?.querySelector('label')?.classList.add('hl-emp-label'); // 標題
+    }, 100);
+}
+```
 
 ```vue
 <style scoped>
-/* 標題顏色 */
-:deep(label[for="dfMaster_員工編號"]) { color: blue; }
-/* 欄位內容顏色 */
-:deep(#dfMaster_員工編號) { color: green; }
+:deep(.hl-emp-label) { color: blue; }   /* 標題顏色 */
+:deep(.hl-emp) { color: green; }        /* 欄位內容顏色 */
 </style>
 ```
 
@@ -3212,6 +3376,24 @@ function reLoad() {
 ```
 
 > 若要完全 Vue-style，可把 `remoteName` 綁成 reactive ref（`<DataGrid :remoteName="rn" />`），更新該 ref 即觸發重新載入。
+
+### 22.1 DataGrid 工具鈕呼叫 Server Method 並把結果回填表格
+
+`DataGrid.vue` 沒有暴露 `loadData`；要把 Server Method 回傳的資料顯示到表格，請對**已暴露的 reactive `getRows()` 陣列**做 `splice` 取代（會即時更新畫面）。
+工具鈕：在 dataform/datagrid 的 `toolItems` 加一顆，`onclick` 指向函式名（事件程式寫該函式）。
+
+```ts
+// toolItems: [{ text:'未聯繫客戶', iconCls:'fa fa-bell', onclick:'showWarning' }]
+async function showWarning() {
+    // 客戶資料表.warning 回傳列陣列（若為 JSON 字串需先 JSON.parse）
+    let result = await $this.callMethod('客戶資料表', 'warning', {});
+    if (typeof result === 'string') result = JSON.parse(result);
+    const rows = $dgMaster.value.getRows();          // reactive 陣列
+    rows.splice(0, rows.length, ...(result || []));  // 整批取代並即時刷新
+}
+```
+
+> 若只是「加條件過濾」而非回傳整批資料，改用 `$dgMaster.value.setWhere("...")`（已暴露，會自動重載）。
 
 ### 23. DataGrid 動態控制使用者的查詢條件
 
@@ -3268,6 +3450,35 @@ function testOpenmove() {
 }
 ```
 
+### 27. DataGrid 用 rowStyler 依資料即時改變整列顏色
+
+`rowStyler` prop 給的是字串，指向 page `.ts` 裡的同名函式；函式 `return` 一段 CSS 字串就會套到該列 `<tr>`。
+
+```vue
+<template>
+  <DataGrid ref="$dgMaster" rowStyler="dgMaster_rowStyler" />
+</template>
+
+<script setup>
+// 逾期紅底、金額過大黃底，其餘不上色
+function dgMaster_rowStyler(index, row) {
+    if (row.狀態 === '逾期')   return 'background-color:#f8d7da;color:#842029;';
+    if (row.金額 > 100000)     return 'background-color:#fff3cd;';
+    return '';
+}
+</script>
+```
+
+即時更新：row 是 reactive，下列任一寫法改值後，該列 rowStyler 會立刻重跑、顏色當下就變，不需 reload：
+
+```js
+$dgMaster.value.setEditorValue(index, '狀態', '逾期');   // 編輯中
+$dgMaster.value.updateRow(index, { 狀態: '逾期' });       // 整列更新
+$dgMaster.value.getRows()[index].狀態 = '逾期';           // 直接改欄位
+```
+
+> 被選取的列原本套 `.info` 淡藍底；若該列 rowStyler 也回傳 `background-color`，inline style 會蓋過選取色（easyui 一貫行為）。要兩者並存需在 rowStyler 內自行判斷。
+> 控制 View/Edit/Delete icon 是否顯示請用案例 15 的 `*CommandVisible` 函式 prop，不要用 rowStyler。
 
 ---
 
