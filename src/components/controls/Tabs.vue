@@ -1,6 +1,6 @@
 <template>
     <ul :class="ulCls">
-        <li v-for="(item, index) in items" class="nav-item" role="presentation">
+        <li v-for="(item, index) in items" v-show="!item.hidden" class="nav-item" role="presentation">
             <button :class="buttonCls(item)" type="button" role="tab" @click="select(index)">
                 <LText v-if="item.name" :root="$" :value="item.name" />
                 <template v-else>
@@ -11,7 +11,7 @@
         </li>
     </ul>
     <div class="tab-content">
-        <div v-for="(item, index) in items" :class="divCls(item)" role="tabpanel">
+        <div v-for="(item, index) in items" v-show="!item.hidden" :class="divCls(item)" role="tabpanel">
             <slot :name="index"></slot>
         </div>
     </div>
@@ -48,7 +48,25 @@
         emit('onSelect', index, items[index].title)
     }
 
-    defineExpose({ select })
+    function indexOfTab(key: string | number) {
+        if (typeof key === 'number') return key
+        return items.findIndex(t => t.title === key || t.name === key)
+    }
+
+    function setTabHidden(key: string | number, hidden: boolean) {
+        const idx = indexOfTab(key)
+        if (idx < 0) return
+        items[idx].hidden = hidden
+        if (hidden && items[idx].active) {
+            const next = items.findIndex(t => !t.hidden)
+            if (next >= 0) select(next)
+        }
+    }
+
+    function hideTab(key: string | number) { setTabHidden(key, true) }
+    function showTab(key: string | number) { setTabHidden(key, false) }
+
+    defineExpose({ select, hideTab, showTab })
 </script>
 
 <style scoped>
