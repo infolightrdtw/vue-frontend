@@ -1349,6 +1349,24 @@
         forceReadonly.value = val == null ? null : !!val
     }
 
+
+    function setColumnReadonly(field, readonly) {
+        if (!field) return false
+        const ro = readonly == null ? false : !!readonly
+        let found = false
+        const applyTo = (c) => {
+            if (!c || (c.field !== field && c.key !== field)) return
+            c.editor = c.editor || {}
+            c.editor.options = c.editor.options || {}
+            c.editor.options.readonly = ro
+            c.readonly = ro
+            found = true
+        }
+        for (const c of (props.columns || [])) applyTo(c)
+        for (const c of panelColumns) applyTo(c)
+        return found
+    }
+
     function setWhere(where) {
         if (Array.isArray(where)) {
             localWhereItems.value = where
@@ -1398,6 +1416,7 @@
         cancel,
         reload,
         setReadonly,
+        setColumnReadonly,
         setWhere,
         getDefaultValues,
         getParentObj,

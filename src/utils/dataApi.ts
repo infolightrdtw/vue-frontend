@@ -147,8 +147,26 @@ export default function (rName: string = '') {
         const { data: result } = await axios.post(fileApiUrl, param, {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
         });
-        
-        return result; 
+
+        return result;
+    }
+
+。
+    async function exportDataset(exportParam: object) {
+        const param: any = {
+            mode: 'exportDataset',
+            module,
+            command
+        }
+        Object.keys(exportParam).forEach(k => {
+            const v = (exportParam as any)[k]
+            if (v === undefined || v === null) return
+            param[k] = (typeof v === 'object') ? JSON.stringify(v) : v
+        })
+        const { data: result } = await axios.post(fileApiUrl, param, {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
+        })
+        return result
     }
 
     return {
@@ -162,6 +180,7 @@ export default function (rName: string = '') {
         uploadFile,
         uploadFiles,
         downloadFile,
-        exportFile
+        exportFile,
+        exportDataset
     }
 }

@@ -89,10 +89,10 @@
 
             <tbody>
                 <tr v-for="(row, index) in rows" :class="trCls(index)" :style="rowStyle(index, row)">
-                    <td v-if="showCheckbox" class="rowcheck">
+                    <td v-if="showCheckbox" class="rowcheck" :style="rowStyle(index, row)">
                         <input type="checkbox" :checked="isRowChecked(index)" @click.stop="toggleCheck(index)" />
                     </td>
-                    <td v-if="showCommandColumn" class="datagrid-command">
+                    <td v-if="showCommandColumn" class="datagrid-command" :style="rowStyle(index, row)">
                         <div class="d-flex gap-2 align-items-center" v-if="!isEditing(index)">
                             <i v-if="canView" class="bi bi-search text-info" :title="$.localeMessages?.value?.view || 'View'" @click.stop="view_row(index)"></i>
                             <i v-if="canEdit" class="bi bi-pencil-square text-warning" :title="$.localeMessages?.value?.edit || 'Edit'" @click.stop="edit_row(index)"></i>
@@ -104,7 +104,7 @@
                         </div>
                     </td>
 
-                    <td v-for="col in visibleColumns" :key="col.field" :class="tdCls(col)" :data-field="col.field" :style="{ width: col.cWidth ? col.cWidth + 'px' : undefined }" @click.stop="clickCell(index,col)">
+                    <td v-for="col in visibleColumns" :key="col.field" :class="tdCls(col)" :data-field="col.field" :style="[rowStyle(index, row), { width: col.cWidth ? col.cWidth + 'px' : undefined }]" @click.stop="clickCell(index,col)">
                         <template v-if="isEditing(index)">
                             <template v-if="isInlineReadonly(editRow, col)">
                                 <BTableCell :row="editRow" :rowIndex="index" :column="col" :root="$"></BTableCell>
@@ -329,7 +329,8 @@
         onLoad: String,
         onInsert: String,
         onUpdate: String,
-        onDelete: String
+        onDelete: String,
+        onTotal: String
     })
     const $ = props.root
     
@@ -501,7 +502,15 @@
     const rowStyle = (index, row) => {
         if (!props.rowStyler) return undefined
         try {
-            return $.invoke(props.rowStyler, index, row) || undefined
+            const style = $.invoke(props.rowStyler, index, row)
+            if (!style) return undefined
+
+            const bgMatch = style.match(/background(?:-color)?\s*:\s*([^;!]+)/i)
+            if (bgMatch) {
+                const color = bgMatch[1].trim()
+                return `${style}; --bs-table-bg:${color}; --bs-table-bg-state:${color};`
+            }
+            return style
         } catch (e) {
             return undefined
         }
@@ -830,6 +839,13 @@
     watch(order, load)
     watch(currentPage, load)
     watch(pageSize, load)
+
+
+    watch(footRow, (totalRow) => {
+        if (props.onTotal && totalRow != null) {
+            $.invoke(props.onTotal, totalRow, rows)
+        }
+    })
 
     function applyMappedToGrid(mapped) {
         const buf = editRow.value
@@ -1679,28 +1695,84 @@
             } catch (e) { $.showError(e) }
         },
 
+
         export: async (options: any = {}) => {
             const opts = typeof options === 'string' ? { name: options } : (options || {})
-            const param: any = {
-                remoteName: props.remoteName,
-                rows: toRaw(rows),
-                columns: (columns as any[]).filter((c: any) => !c.hidden),
-                fileType: opts.fileType || 'xlsx',
-                downloadName: opts.downloadName || ''
-            }
+
+            const visibleCols = (columns as any[]).filter((c: any) => !c.hidden && c.field)
+            const exportColumns = visibleCols.map((c: any) => ({
+                field: c.field,
+                title: c.title ?? c.field,
+                width: c.width
+            }))
+            // relation 欄位：把 col.relation.options 轉成後端 ExportXlsx 期望的 { field, relation:{ valueField,textField,remoteName } }
+            const relation = visibleCols
+                .filter((c: any) => c.relation?.options?.remoteName)
+                .map((c: any) => ({
+                    field: c.field,
+                    relation: {
+                        valueField: c.relation.options.valueField,
+                        textField: c.relation.options.textField,
+                        remoteName: c.relation.options.remoteName
+                    }
+                }))
+
             const paths = window.location.pathname.split('/')
-            const name = opts.name || decodeURI(paths[paths.length - 1])
+            const name = opts.name || opts.fileName || decodeURI(paths[paths.length - 1])
+
+            const exportParam: any = {
+                columns: exportColumns,
+                title: opts.title || name,
+                relation
+            }
+
+            if (sort.value) {
+                exportParam.sort = sort.value
+                exportParam.order = order.value
+            }
+            if (props.parentObject) {
+                const form = $['$' + props.parentObject]
+                const { parentRow, parentTable } = form.value.getParentObj()
+                exportParam.parentTable = parentTable
+                exportParam.parentRow = parentRow
+            } else {
+                const flowWhereItems = isFlow.value ? getFlowWhereItems(flowParam) : null
+                if (flowWhereItems) {
+                    exportParam.whereItems = flowWhereItems
+                } else {
+                    const whereItems: any[] = []
+                    const qCols = props.queryColumns || []
+                    qCols.forEach((qc: any) => {
+                        const value = queryValues.value[qc.field]
+                        if (value !== undefined && value !== '') {
+                            whereItems.push({ field: qc.field, operator: qc.operator, value })
+                        }
+                    })
+                    Object.entries(autoQueryValues.value).forEach(([field, value]: any) => {
+                        if (value === undefined || value === null || value === '') return
+                        whereItems.push({ field, operator: '%', value })
+                    })
+                    if (whereItems.length) exportParam.whereItems = whereItems
+                    const effectiveWhereStr = localWhereStr.value || props.whereStr
+                    if (effectiveWhereStr) exportParam.whereStr = effectiveWhereStr
+                }
+            }
+
+            const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
+            if ($.loading) $.loading(document.body, loadingMsg)
             try {
-                const { exportFile } = dataUtils(props.remoteName)
-                const file = await exportFile('excel', name, param)
-                if (!file) return
+                const { exportDataset } = dataUtils(props.remoteName)
+                const file = await exportDataset(exportParam)
+                if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
                 const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '')
-                const newName = encodeURIComponent(param.downloadName || name)
+                const newName = encodeURIComponent(opts.downloadName || name)
                 const link = document.createElement('a')
                 link.href = `${baseUrl}/file?q=${file}&n=${newName}`
                 link.setAttribute('download', '')
                 document.body.appendChild(link); link.click(); document.body.removeChild(link)
-            } catch (e) { $.showError(e) }
+            } catch (e) { $.showError(e) } finally {
+                if ($.loaded) $.loaded(document.body)
+            }
         },
 
         importExcel: () => triggerExcelImport(true),
@@ -1777,6 +1849,10 @@
         align-items: center;
         border-bottom: 1px solid #ccc;
         margin-bottom: 1rem;
+    }
+
+    .modal-header .modal-title {
+        color: #fff;
     }
 
     .modal-footer {

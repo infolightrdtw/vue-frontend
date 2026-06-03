@@ -190,12 +190,12 @@ body,
 .datagrid-toolitem,
 .gantt-toolitem,
 .dataform-toolitem {
-    padding: 5px;
+    padding: 8px 12px;
     width: 100%;
 }
 
 .datagrid-title {
-    padding: 5px;
+    padding: 8px 12px;
     background-color: var(--theme-primary);
     color: #fff;
     font-size: 18px;
