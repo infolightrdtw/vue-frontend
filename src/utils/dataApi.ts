@@ -151,7 +151,6 @@ export default function (rName: string = '') {
         return result;
     }
 
-。
     async function exportDataset(exportParam: object) {
         const param: any = {
             mode: 'exportDataset',

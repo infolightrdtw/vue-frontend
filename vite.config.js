@@ -31,6 +31,12 @@ export default defineConfig({
                 target: 'https://localhost:44368', //測試機'http://localhost:5050'
                 changeOrigin: true,
                 secure: false // 允許自簽憑證
+            },
+
+            '/file': {
+                target: 'https://localhost:44368',
+                changeOrigin: true,
+                secure: false
             }
         },
         allowedHosts: ['eepcloud.infolight.com']
@@ -40,6 +46,11 @@ export default defineConfig({
         port: 4173,
         proxy: {
             '/api': {
+                target: 'https://localhost:44368',
+                changeOrigin: true,
+                secure: false
+            },
+            '/file': {
                 target: 'https://localhost:44368',
                 changeOrigin: true,
                 secure: false

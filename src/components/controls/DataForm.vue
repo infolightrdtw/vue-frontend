@@ -28,7 +28,8 @@
                         <template v-for="(f, idx) in visibleFields" :key="idx">
                             <div v-if="idx > 0 && (isFullWidth(f) || f.newRow)"
                                  class="w-100 d-none d-md-block"></div>
-                            <div :class="computeColClass(f) ">
+                            <div :class="[computeColClass(f), columnStyles[f.key] ? 'df-col-styled' : '']"
+                                 :style="columnStyles[f.key] || null">
 
                                 <div class="row align-items-center g-2">
                                     <label v-if="f.label !== false" :class="[(isFullWidth(f) ? 'col-12 col-md-2' : 'col-12 col-md-4'), 'col-form-label', 'text-muted', 'fw-semibold']">
@@ -226,6 +227,7 @@
         } catch { return false }
     }
     const panelColumns = reactive([])
+    const columnStyles = reactive({})
     const saving = ref(false)
     const formState = reactive({})
     const fieldError = ref({})
@@ -413,22 +415,33 @@
                 return undefined
             }
 
+            // autoseq[field, numDig, startValue, step, prefix?]
             case 'autoseq': {
                 const field = params[0]
                 const len = parseInt(params[1] ?? 0, 10) || 0
                 const start = parseInt(params[2] ?? 1, 10) || 1
                 const step = parseInt(params[3] ?? 1, 10) || 1
+                const prefix = params[4] != null ? String(params[4]) : ''
                 const rows = Array.isArray(ctx.rows) ? ctx.rows : null
                 if (!rows || !field) return undefined
 
                 var maxVal = -1
                 for (var i = 0; i < rows.length; i++) {
-                    const v = parseInt(rows[i]?.[field], 10)
+                    const raw = rows[i]?.[field]
+                    if (raw === null || raw === undefined || raw === '') continue
+                    var s = String(raw)
+                    if (prefix && s.startsWith(prefix)) {
+                        s = s.slice(prefix.length)
+                    } else {
+                        const mm = s.match(/(\d+)\s*$/)
+                        s = mm ? mm[1] : s
+                    }
+                    const v = parseInt(s, 10)
                     if (!isNaN(v)) maxVal = Math.max(maxVal, v)
                 }
                 var value = (maxVal < 0 ? start : (maxVal + step)).toString()
                 if (len > 0 && value.length < len) value = value.padStart(len, '0')
-                return value
+                return prefix + value
             }
 
             case 'parent': {
@@ -1367,6 +1380,14 @@
         return found
     }
 
+    // 設定（或清除）某欄位的容器樣式（例如背景色），走 reactive，立即重繪
+    function setColumnStyle(field, style) {
+        if (!field) return false
+        if (style == null || style === '') delete columnStyles[field]
+        else columnStyles[field] = style
+        return true
+    }
+
     function setWhere(where) {
         if (Array.isArray(where)) {
             localWhereItems.value = where
@@ -1417,6 +1438,7 @@
         reload,
         setReadonly,
         setColumnReadonly,
+        setColumnStyle,
         setWhere,
         getDefaultValues,
         getParentObj,
@@ -1444,6 +1466,8 @@
         }),
         hide: () => { visible.value = false },
         currentRow: formState,
+        columns: props.columns,
+        panelColumns,
         isShowFlowIcon: props.isShowFlowIcon,
         viewGrids,
         detailGrids,
@@ -1608,5 +1632,16 @@
         .df-full .card-body {
             flex: 1 1 auto;
             overflow-y: auto;
+        }
+
+        /* setColumnStyle 套用背景時，讓內層 input 透明 */
+        .df-col-styled {
+            border-radius: .375rem;
+            padding-top: .25rem;
+            padding-bottom: .25rem;
+        }
+        .df-col-styled :deep(.form-control),
+        .df-col-styled :deep(.form-select) {
+            background-color: transparent;
         }
 </style>

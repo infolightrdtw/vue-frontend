@@ -446,23 +446,34 @@ export default function (funcs: object, controls: object, addOn: Ref) {
         //row: function (param) {
         //    return ''
         //},
-        autoseq: function (param, rows) {
-            if (rows) {
-                let value = -1;
-                for (let i = 0; i < rows.length; i++) {
-                    const fieldValue = parseInt(rows[i][param[0]]);
-                    if (!isNaN(fieldValue)) {
-                        value = Math.max(fieldValue, value);
-                    }
-                }
-                let strValue = value < 0 ? param[2].toString() : (value + param[3]).toString();
 
-                for (let i = strValue.length; i < param[1]; i++) {
-                    strValue = '0' + value;
+        autoseq: function (param, rows) {
+            if (!rows) return ''
+            const field = param[0]
+            const numDig = parseInt(param[1]) || 0
+            const startValue = Number(param[2])
+            const step = Number(param[3])
+            const prefix = param[4] != null ? String(param[4]) : ''
+
+            let maxNum = -1
+            for (let i = 0; i < rows.length; i++) {
+                const raw = rows[i][field]
+                if (raw === null || raw === undefined || raw === '') continue
+                let s = String(raw)
+                if (prefix && s.startsWith(prefix)) {
+                    s = s.slice(prefix.length)
+                } else {
+                    const m = s.match(/(\d+)\s*$/)
+                    s = m ? m[1] : s
                 }
-                return strValue;
+                const n = parseInt(s, 10)
+                if (!isNaN(n)) maxNum = Math.max(maxNum, n)
             }
-            return ''
+
+            const next = maxNum < 0 ? startValue : (maxNum + step)
+            let strValue = String(next)
+            while (strValue.length < numDig) strValue = '0' + strValue   // 修正：原本誤用 value 補位
+            return prefix + strValue
         },
         parent: function (param, parentRow) {
             return parentRow[param[0]]
@@ -639,6 +650,11 @@ export default function (funcs: object, controls: object, addOn: Ref) {
 
     const rValues = {}
 
+
+    function relationKey(opts: object) {
+        return `${opts['remoteName']}|${opts['valueField']}|${opts['textField']}`
+    }
+
     async function loadRelationValues(opts: object, value: string, merge?: boolean) {
         if (opts['remoteName'] && value) {
             const { loadData } = dataUtils(opts['remoteName']);
@@ -655,23 +671,29 @@ export default function (funcs: object, controls: object, addOn: Ref) {
             }
             catch (_) { }
 
+
+            if (!Array.isArray(data)) return
+
+
             const values = data.reduce((obj, r) => {
-                obj[r[opts['valueField']]] = r[opts['textField']]
+                obj[String(r[opts['valueField']] ?? '').trim()] = r[opts['textField']]
                 return obj
             }, {})
 
+            const key = relationKey(opts)
             if (merge) {
-                const oValues = rValues[opts['remoteName']] || {}
-                rValues[opts['remoteName']] = { ...oValues, ...values }
+                const oValues = rValues[key] || {}
+                rValues[key] = { ...oValues, ...values }
             }
             else {
-                rValues[opts['remoteName']] = values
+                rValues[key] = values
             }
         }
     }
 
     async function getRelationValue(opts: object, value: string) {
-        let text = (rValues[opts['remoteName']] || {})[value]
+        const map = rValues[relationKey(opts)] || {}
+        const text = map[String(value ?? '').trim()]
         return text == undefined ? '' : text
     }
 

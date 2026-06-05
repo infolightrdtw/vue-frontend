@@ -804,7 +804,8 @@
                 const seperator = col.relation?.options?.seperator || ','
                 const values = []
                 data.rows.forEach(r => {
-                    const value = r[col.relation.options.valueField]?.toString()
+
+                    const value = r[col.field]?.toString()
                     if (value) {
                         value.split(seperator).filter(Boolean).forEach(v => {
                             values.push(v)
@@ -1360,68 +1361,227 @@
         }
     }
 
+
+    function triggerFileDownload(file: string, downloadName: string, inline = false) {
+        const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '')
+        const n = encodeURIComponent(downloadName || '')
+        const url = `${baseUrl}/file?q=${file}&n=${n}${inline ? '&t=inline' : ''}`
+        if (inline) {
+            window.open(url)
+        } else {
+            window.location.href = url
+        }
+    }
+
+    function collectQueryFilter() {
+        const result: any = {}
+        if (props.parentObject) {
+            const form = $['$' + props.parentObject]
+            const { parentRow, parentTable } = form.value.getParentObj()
+            result.parentTable = parentTable
+            result.parentRow = parentRow
+            return result
+        }
+        const flowWhereItems = isFlow.value ? getFlowWhereItems(flowParam) : null
+        if (flowWhereItems) {
+            result.whereItems = flowWhereItems
+            return result
+        }
+        const whereItems: any[] = []
+        const qCols = props.queryColumns || []
+        qCols.forEach((qc: any) => {
+            const value = queryValues.value[qc.field]
+            if (value !== undefined && value !== '') {
+                whereItems.push({ field: qc.field, operator: qc.operator, value })
+            }
+        })
+        Object.entries(autoQueryValues.value).forEach(([field, value]: any) => {
+            if (value === undefined || value === null || value === '') return
+            whereItems.push({ field, operator: '%', value })
+        })
+        if (whereItems.length) result.whereItems = whereItems
+        const effectiveWhereStr = localWhereStr.value || props.whereStr
+        if (effectiveWhereStr) result.whereStr = effectiveWhereStr
+        return result
+    }
+
+
     async function exportWord(options: any = {}) {
         const index = selectedIndex.value
-        if (index >= 0) {
-            if (typeof options === 'string') {
-                options = { name: options }
-            }
-            
-            const masterRow = toRaw(rows[index])            
-            const param = {
-                remoteName: props.remoteName,
-                masterRow: masterRow,
-                fileType: options.fileType,
-                wordName: options.wordName || options.fileName,
-                downloadName: options.downloadName || '',
-                directOpen: options.directOpen || false,
-                password: options.password,
-                watermark: options.watermark,
-                titleName: options.titleName
-            }
-
-            const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
-            if ($.loading) $.loading(document.body, loadingMsg)
-
-            const paths = window.location.pathname.split('/')
-            const name = options.name || decodeURI(paths[paths.length - 1])
-
-            const { exportFile } = dataUtils(props.remoteName);
-        
-
-            try {
-                const { exportFile } = dataUtils(props.remoteName);
-                const file = await exportFile('word', name, param);
-
-                if (!file) {
-                    $.showError($.localeMessages?.value?.error || "Export failed");
-                    return;
-                }
-
-                const newName = param.downloadName !== '' ? encodeURIComponent(param.downloadName) : encodeURIComponent(name);
-                
-                const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '');
-
-                const downloadUrl = `${baseUrl}/file?q=${file}&n=${newName}`;
-
-                if (options.fileType === 'pdf' && param.directOpen) {
-                    window.open(downloadUrl + '&t=inline');
-                } else {
-                    const link = document.createElement('a');
-                    link.href = downloadUrl;
-                    link.setAttribute('download', '');
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
-            } catch (error) {
-                $.showError(error);
-            } finally {
-                if ($.loaded) $.loaded(document.body);
-            }
-        } else {
+        if (index < 0) {
             const warningMsg = $.localeMessages?.value?.selectData || 'Please select data'
             $.alert(warningMsg, 'warning')
+            return
+        }
+        if (typeof options === 'string') options = { name: options }
+
+        const masterRow = toRaw(rows[index])
+        const param = {
+            remoteName: props.remoteName,
+            masterRow: masterRow,
+            fileType: options.fileType,
+            wordName: options.wordName || options.fileName,
+            downloadName: options.downloadName || '',
+            directOpen: options.directOpen || false,
+            password: options.password,
+            watermark: options.watermark,
+            titleName: options.titleName
+        }
+
+        const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
+        if ($.loading) $.loading(document.body, loadingMsg)
+
+        const paths = window.location.pathname.split('/')
+        const name = options.name || decodeURI(paths[paths.length - 1])
+
+        try {
+            const { exportFile } = dataUtils(props.remoteName)
+            const file = await exportFile('word', name, param)
+            if (!file) {
+                $.showError($.localeMessages?.value?.error || 'Export failed')
+                return
+            }
+            const downloadName = param.downloadName !== '' ? param.downloadName : name
+            triggerFileDownload(file, downloadName, options.fileType === 'pdf' && param.directOpen)
+        } catch (error) {
+            $.showError(error)
+        } finally {
+            if ($.loaded) $.loaded(document.body)
+        }
+    }
+
+    function exportWordPdf(options: any = {}) {
+        const o = typeof options === 'string' ? { name: options } : (options || {})
+        return exportWord({ ...o, fileType: 'pdf' })
+    }
+
+    async function exportWordLoop(options: any = {}) {
+        const o = typeof options === 'string' ? { name: options } : (options || {})
+        const q = collectQueryFilter()
+        const whereItems = (o.whereItems && o.whereItems.length > 0) ? o.whereItems : q.whereItems
+        const param = {
+            remoteName: props.remoteName,
+            fileType: o.fileType,
+            whereStr: q.whereStr,
+            whereItems: whereItems,
+            wordName: o.wordName || o.fileName,
+            downloadName: o.downloadName || '',
+            directOpen: o.directOpen || false
+        }
+        const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
+        if ($.loading) $.loading(document.body, loadingMsg)
+        const paths = window.location.pathname.split('/')
+        const name = o.name || decodeURI(paths[paths.length - 1])
+        try {
+            const { exportFile } = dataUtils(props.remoteName)
+            const file = await exportFile('wordLoop', name, param)
+            if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
+            const downloadName = param.downloadName !== '' ? param.downloadName : name
+            triggerFileDownload(file, downloadName, o.fileType === 'pdf' && param.directOpen)
+        } catch (error) {
+            $.showError(error)
+        } finally {
+            if ($.loaded) $.loaded(document.body)
+        }
+    }
+
+    async function exportWordAll(options: any = {}) {
+        const o = typeof options === 'string' ? { name: options } : (options || {})
+        const q = collectQueryFilter()
+        const param = {
+            remoteName: props.remoteName,
+            fileType: o.fileType,
+            whereStr: q.whereStr,
+            whereItems: o.whereItems || q.whereItems,
+            wordName: o.wordName || o.fileName,
+            downloadName: o.downloadName || ''
+        }
+        const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
+        if ($.loading) $.loading(document.body, loadingMsg)
+        const paths = window.location.pathname.split('/')
+        const name = o.name || decodeURI(paths[paths.length - 1])
+        try {
+            const { exportFile } = dataUtils(props.remoteName)
+            const file = await exportFile('wordAll', name, param)
+            if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
+            const downloadName = param.downloadName !== '' ? param.downloadName : name
+            triggerFileDownload(file, downloadName, o.fileType === 'pdf' && param.directOpen)
+        } catch (error) {
+            $.showError(error)
+        } finally {
+            if ($.loaded) $.loaded(document.body)
+        }
+    }
+
+    async function exportPDF(options: any = {}) {
+        const o = typeof options === 'string' ? { name: options } : (options || {})
+
+        let fields: any[] = []
+        let linkFields: any[] = []
+        let details: any[] = []
+        let editForm = false
+        let masterRow: any = undefined
+
+        if (props.editForm) {
+            editForm = true
+            const index = selectedIndex.value
+            if (index < 0) {
+                $.alert($.localeMessages?.value?.selectData || 'Please select data', 'warning')
+                return
+            }
+            masterRow = toRaw(rows[index])
+            const form = $['$' + props.editForm]?.value
+            fields = (form?.columns || []).filter((c: any) => !c.hidden && c.field)
+            linkFields = (form?.panelColumns || []).filter((c: any) => !c.hidden && c.field)
+            const dgrids = form?.detailGrids || {}
+            details = Object.keys(dgrids).map(k => {
+                const g = dgrids[k]?.value
+                if (!g) return null
+                return {
+                    title: g.title,
+                    remoteName: g.remoteName,
+                    fields: (g.columns || []).filter((c: any) => !c.hidden && c.field),
+                    whereItems: g.whereItems,
+                    whereStr: g.whereStr
+                }
+            }).filter(Boolean)
+        } else {
+            fields = (columns as any[]).filter((c: any) => !c.hidden && c.field)
+        }
+
+        const q = collectQueryFilter()
+        const param = {
+            title: props.title,
+            fields,
+            linkFields,
+            details,
+            editForm,
+            remoteName: props.remoteName,
+            masterRow,
+            whereItems: q.whereItems,
+            whereStr: q.whereStr,
+            fileType: o.fileType,
+            downloadName: o.downloadName || '',
+            directOpen: o.directOpen || false,
+            password: o.password,
+            watermark: o.watermark
+        }
+
+        const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
+        if ($.loading) $.loading(document.body, loadingMsg)
+        const paths = window.location.pathname.split('/')
+        const name = (o.name || decodeURI(paths[paths.length - 1])).replace(/_Query$/, '')
+        try {
+            const { exportFile } = dataUtils(props.remoteName)
+            const file = await exportFile('pdf', name, param)
+            if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
+            const downloadName = param.downloadName !== '' ? param.downloadName : name
+
+            triggerFileDownload(file, downloadName, !!param.directOpen)
+        } catch (error) {
+            $.showError(error)
+        } finally {
+            if ($.loaded) $.loaded(document.body)
         }
     }
 
@@ -1579,7 +1739,11 @@
         load,
         submit,
         openMove,
-        exportWord
+        exportWord,
+        exportWordPdf,
+        exportWordLoop,
+        exportWordAll,
+        exportPDF
     }
 
     const EXPOSE_METHODS = {
@@ -1597,6 +1761,9 @@
         editCommandVisible,
         deleteCommandVisible,
         rows,
+        columns,
+        remoteName: props.remoteName,
+        whereStr: props.whereStr,
 
         title: props.title,
         queryTitle: props.queryTitle,
@@ -1643,9 +1810,6 @@
             hasQueried.value = true
             return load()
         },
-        exportWordPdf: (options: any = {}) =>
-            exportWord({ ...(typeof options === 'string' ? { name: options } : options), fileType: 'pdf' }),
-
         exportExcel: async (options: any = {}) => {
             const opts = typeof options === 'string' ? { name: options } : (options || {})
             const index = selectedIndex.value
@@ -1730,33 +1894,7 @@
                 exportParam.sort = sort.value
                 exportParam.order = order.value
             }
-            if (props.parentObject) {
-                const form = $['$' + props.parentObject]
-                const { parentRow, parentTable } = form.value.getParentObj()
-                exportParam.parentTable = parentTable
-                exportParam.parentRow = parentRow
-            } else {
-                const flowWhereItems = isFlow.value ? getFlowWhereItems(flowParam) : null
-                if (flowWhereItems) {
-                    exportParam.whereItems = flowWhereItems
-                } else {
-                    const whereItems: any[] = []
-                    const qCols = props.queryColumns || []
-                    qCols.forEach((qc: any) => {
-                        const value = queryValues.value[qc.field]
-                        if (value !== undefined && value !== '') {
-                            whereItems.push({ field: qc.field, operator: qc.operator, value })
-                        }
-                    })
-                    Object.entries(autoQueryValues.value).forEach(([field, value]: any) => {
-                        if (value === undefined || value === null || value === '') return
-                        whereItems.push({ field, operator: '%', value })
-                    })
-                    if (whereItems.length) exportParam.whereItems = whereItems
-                    const effectiveWhereStr = localWhereStr.value || props.whereStr
-                    if (effectiveWhereStr) exportParam.whereStr = effectiveWhereStr
-                }
-            }
+            Object.assign(exportParam, collectQueryFilter())
 
             const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
             if ($.loading) $.loading(document.body, loadingMsg)
