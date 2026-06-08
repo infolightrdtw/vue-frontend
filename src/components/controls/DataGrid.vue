@@ -1585,6 +1585,54 @@
         }
     }
 
+    // 直接把整個資料集匯出成 xlsx（對齊舊版 jQuery datagrid('export')，走後端 exportDataset/ExportXlsx）。
+    // 與 exportExcel（套表 type='excel'）不同：只送 module/command + 欄位 + 目前查詢條件，後端依條件重取「全部」資料。
+    async function exportData(options: any = {}) {
+        const opts = typeof options === 'string' ? { name: options } : (options || {})
+
+        const visibleCols = (columns as any[]).filter((c: any) => !c.hidden && c.field)
+        const exportColumns = visibleCols.map((c: any) => ({
+            field: c.field,
+            title: c.title ?? c.field,
+            width: c.width
+        }))
+        const relation = visibleCols
+            .filter((c: any) => c.relation?.options?.remoteName)
+            .map((c: any) => ({
+                field: c.field,
+                relation: {
+                    valueField: c.relation.options.valueField,
+                    textField: c.relation.options.textField,
+                    remoteName: c.relation.options.remoteName
+                }
+            }))
+
+        const paths = window.location.pathname.split('/')
+        const name = (opts.name || opts.fileName || decodeURI(paths[paths.length - 1])).replace(/_Query$/, '')
+
+        const exportParam: any = {
+            columns: exportColumns,
+            title: opts.title || name,
+            relation
+        }
+        if (sort.value) {
+            exportParam.sort = sort.value
+            exportParam.order = order.value
+        }
+        Object.assign(exportParam, collectQueryFilter())
+
+        const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
+        if ($.loading) $.loading(document.body, loadingMsg)
+        try {
+            const { exportDataset } = dataUtils(props.remoteName)
+            const file = await exportDataset(exportParam)
+            if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
+            triggerFileDownload(file, opts.downloadName || name, false)
+        } catch (e) { $.showError(e) } finally {
+            if ($.loaded) $.loaded(document.body)
+        }
+    }
+
     function getDefaultValues() {
         const dParam = {
             parent: getParentValues(),
@@ -1739,6 +1787,7 @@
         load,
         submit,
         openMove,
+        export: exportData,
         exportWord,
         exportWordPdf,
         exportWordLoop,
@@ -1859,59 +1908,6 @@
             } catch (e) { $.showError(e) }
         },
 
-
-        export: async (options: any = {}) => {
-            const opts = typeof options === 'string' ? { name: options } : (options || {})
-
-            const visibleCols = (columns as any[]).filter((c: any) => !c.hidden && c.field)
-            const exportColumns = visibleCols.map((c: any) => ({
-                field: c.field,
-                title: c.title ?? c.field,
-                width: c.width
-            }))
-            // relation 欄位：把 col.relation.options 轉成後端 ExportXlsx 期望的 { field, relation:{ valueField,textField,remoteName } }
-            const relation = visibleCols
-                .filter((c: any) => c.relation?.options?.remoteName)
-                .map((c: any) => ({
-                    field: c.field,
-                    relation: {
-                        valueField: c.relation.options.valueField,
-                        textField: c.relation.options.textField,
-                        remoteName: c.relation.options.remoteName
-                    }
-                }))
-
-            const paths = window.location.pathname.split('/')
-            const name = opts.name || opts.fileName || decodeURI(paths[paths.length - 1])
-
-            const exportParam: any = {
-                columns: exportColumns,
-                title: opts.title || name,
-                relation
-            }
-
-            if (sort.value) {
-                exportParam.sort = sort.value
-                exportParam.order = order.value
-            }
-            Object.assign(exportParam, collectQueryFilter())
-
-            const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
-            if ($.loading) $.loading(document.body, loadingMsg)
-            try {
-                const { exportDataset } = dataUtils(props.remoteName)
-                const file = await exportDataset(exportParam)
-                if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
-                const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '')
-                const newName = encodeURIComponent(opts.downloadName || name)
-                const link = document.createElement('a')
-                link.href = `${baseUrl}/file?q=${file}&n=${newName}`
-                link.setAttribute('download', '')
-                document.body.appendChild(link); link.click(); document.body.removeChild(link)
-            } catch (e) { $.showError(e) } finally {
-                if ($.loaded) $.loaded(document.body)
-            }
-        },
 
         importExcel: () => triggerExcelImport(true),
         importExcelNotApply: () => triggerExcelImport(false)
