@@ -1585,8 +1585,6 @@
         }
     }
 
-    // 直接把整個資料集匯出成 xlsx（對齊舊版 jQuery datagrid('export')，走後端 exportDataset/ExportXlsx）。
-    // 與 exportExcel（套表 type='excel'）不同：只送 module/command + 欄位 + 目前查詢條件，後端依條件重取「全部」資料。
     async function exportData(options: any = {}) {
         const opts = typeof options === 'string' ? { name: options } : (options || {})
 
@@ -1626,7 +1624,11 @@
         try {
             const { exportDataset } = dataUtils(props.remoteName)
             const file = await exportDataset(exportParam)
-            if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
+
+            if (typeof file !== 'string' || !file.trim()) {
+                $.showError($.localeMessages?.value?.error || 'Export failed')
+                return
+            }
             triggerFileDownload(file, opts.downloadName || name, false)
         } catch (e) { $.showError(e) } finally {
             if ($.loaded) $.loaded(document.body)
