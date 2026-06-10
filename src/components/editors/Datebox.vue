@@ -164,6 +164,14 @@ onMounted(() => {
 onBeforeUnmount(() => { if (fp) fp.destroy() })
 
 function handleBlur (e) {
+
+  if (fp && inputRef.value && !props.selectOnly && !isDisabled.value) {
+    const typed = (inputRef.value.value || '').trim()
+    const cur = props.modelValue == null ? '' : String(props.modelValue)
+    if (typed !== cur) {
+      try { fp.setDate(typed || null, true) } catch (err) { /* 無法解析就忽略 */ }
+    }
+  }
   emit('blur', e)
   validate()
 }

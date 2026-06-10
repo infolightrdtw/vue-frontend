@@ -542,13 +542,36 @@
     /* ===== Sidebar =====
        Width resolves the same var as topbar::before, so both transition
        together. Background image uses mix-blend-mode so it tints with the
-       theme colour automatically. */
+       theme colour automatically. Outer overflow stays hidden (keeps the
+       artwork in place) but the menu list inside scrolls when it overflows.
+       !important on display/flex-direction beats Bootstrap's .d-block utility
+       class that's also on the same element via siderCls. */
     .sidebar {
         background-color: var(--fw-chrome);
         position: relative;
         overflow: hidden;
         width: var(--sidebar-width);
         transition: width .25s ease, background-color .35s ease;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    /* Menu list scrolls; toggle bar + search bar stay pinned at the top. */
+    .sidebar .panel-group {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;     /* required for flex item to shrink */
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, .35) transparent;
+    }
+    .sidebar .panel-group::-webkit-scrollbar { width: 8px; }
+    .sidebar .panel-group::-webkit-scrollbar-track { background: transparent; }
+    .sidebar .panel-group::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, .35);
+        border-radius: 4px;
+    }
+    .sidebar .panel-group::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, .55);
     }
     /* Decorative artwork — fills the whole sidebar then uses a soft mask
        gradient so the artwork fades in from the top instead of starting
@@ -682,6 +705,14 @@
         background-color: rgba(255, 255, 255, .96) !important;
         color: var(--fw-primary) !important;
         font-weight: 600;
+    }
+    /* Icons / glyphicons inside the active chip must switch to the theme
+       colour as well — otherwise white icon on white chip is invisible. */
+    .sidebar :deep(.list-group-item.active i),
+    .sidebar :deep(.list-group-item.active .menu-toggle),
+    .sidebar :deep(.list-group-item.active .glyphicon) {
+        color: var(--fw-primary) !important;
+        opacity: 1;
     }
 
     /* ----- Level 3 : nested submenu items ----- */

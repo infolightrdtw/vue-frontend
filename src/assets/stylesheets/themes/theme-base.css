@@ -201,6 +201,53 @@
   color: var(--theme-primary-hover) !important;
 }
 
+/* =========================================
+   DataGrid command icons (view / edit / delete) — context-aware.
+   Vibrant 500-level on normal/striped rows; the SAME hue at 800-level
+   on the selected (.info) row so icons stay readable against the
+   tinted bg without filters/halos that blur the glyph.
+   ========================================= */
+.bootstrap-datagrid .datagrid-command > div {
+  gap: .05rem !important;       /* tight — icons almost touch */
+}
+.bootstrap-datagrid .datagrid-command i.bi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 50%;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: transform .15s ease, background-color .15s ease, box-shadow .15s ease, color .12s ease;
+}
+/* Default — vibrant 500-level on white / striped rows */
+.bootstrap-datagrid .datagrid-command i.bi.text-info      { color: #0ea5e9 !important; }
+.bootstrap-datagrid .datagrid-command i.bi.text-warning   { color: #f59e0b !important; }
+.bootstrap-datagrid .datagrid-command i.bi.text-danger    { color: #ef4444 !important; }
+.bootstrap-datagrid .datagrid-command i.bi.text-success   { color: #22c55e !important; }
+.bootstrap-datagrid .datagrid-command i.bi.text-secondary { color: #64748b !important; }
+
+/* Selected row — same hue, darker (800-level) to stay readable on
+   the tinted --theme-row-selected background. */
+.bootstrap-datagrid tr.info > .datagrid-command i.bi.text-info      { color: #075985 !important; }
+.bootstrap-datagrid tr.info > .datagrid-command i.bi.text-warning   { color: #92400e !important; }
+.bootstrap-datagrid tr.info > .datagrid-command i.bi.text-danger    { color: #991b1b !important; }
+.bootstrap-datagrid tr.info > .datagrid-command i.bi.text-success   { color: #166534 !important; }
+.bootstrap-datagrid tr.info > .datagrid-command i.bi.text-secondary { color: #334155 !important; }
+
+/* Hover — prominent: bigger scale + matching coloured pill +
+   soft elevation shadow. Each icon's pill picks up its own hue. */
+.bootstrap-datagrid .datagrid-command i.bi:hover {
+  transform: scale(1.35);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .12);
+}
+.bootstrap-datagrid .datagrid-command i.bi.text-info:hover      { background-color: rgba(14, 165, 233, .22); }
+.bootstrap-datagrid .datagrid-command i.bi.text-warning:hover   { background-color: rgba(245, 158, 11, .25); }
+.bootstrap-datagrid .datagrid-command i.bi.text-danger:hover    { background-color: rgba(239, 68, 68, .22); }
+.bootstrap-datagrid .datagrid-command i.bi.text-success:hover   { background-color: rgba(34, 197, 94, .22); }
+.bootstrap-datagrid .datagrid-command i.bi.text-secondary:hover { background-color: rgba(100, 116, 139, .22); }
+
 /* Generic BModal header (Flow 查詢, etc.) — low specificity so
    .refval / .clientmove / #queryModal can still override. */
 .modal-header {
@@ -519,6 +566,82 @@ body .btn-check:checked + .btn {
   background-color: var(--theme-primary);
   color: #fff;
 }
+
+/* =========================================
+   FullCalendar (Schedule.vue, themeSystem: bootstrap5) — toolbar
+   buttons + today cell. The today button gets .btn-info from the
+   bootstrap5 plugin (semantic "info" colour), the other buttons
+   get .btn-primary. We override BOTH plus the default fc-* classes
+   so any FullCalendar build is covered.
+   ========================================= */
+.fc .btn.btn-info,
+.fc .btn.btn-primary,
+.fc .fc-button.fc-button-primary,
+.fc .fc-button-primary,
+.fc .fc-today-button {
+  background-color: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+.fc .btn.btn-info:hover,
+.fc .btn.btn-primary:hover,
+.fc .fc-button-primary:hover,
+.fc .fc-today-button:hover {
+  background-color: var(--theme-primary-hover) !important;
+  border-color: var(--theme-primary-hover) !important;
+  color: #fff !important;
+}
+.fc .btn:focus,
+.fc .btn:focus-visible,
+.fc .fc-button-primary:focus,
+.fc .fc-button-primary:focus-visible {
+  box-shadow: 0 0 0 .15rem var(--theme-focus-ring) !important;
+  outline: 0 !important;
+}
+.fc .btn.btn-info:not(:disabled).active,
+.fc .btn.btn-primary:not(:disabled).active,
+.fc .btn.active,
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: var(--theme-primary-hover) !important;
+  border-color: var(--theme-primary-hover) !important;
+  color: #fff !important;
+}
+/* Disabled today button = currently viewing today → render it like
+   a selected (active) view button so it doesn't fade into the bar. */
+.fc .btn.btn-info:disabled,
+.fc .fc-today-button:disabled {
+  background-color: var(--theme-primary-hover) !important;
+  border-color: var(--theme-primary-hover) !important;
+  color: #fff !important;
+  opacity: 1 !important;
+  cursor: default;
+}
+/* Other genuinely disabled buttons stay subdued */
+.fc .btn:disabled,
+.fc .btn.btn-primary:disabled,
+.fc .fc-button-primary:disabled {
+  background-color: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  color: #fff !important;
+  opacity: .55;
+}
+
+/* Today cell tinted with table-bg */
+.fc .fc-day-today,
+.fc .fc-daygrid-day.fc-day-today,
+.fc .fc-timegrid-col.fc-day-today {
+  background-color: var(--theme-table-bg) !important;
+}
+
+/* Toolbar title + column headers in theme primary */
+.fc .fc-toolbar-title { color: var(--theme-primary); }
+.fc .fc-col-header-cell-cushion {
+  color: var(--theme-primary);
+  text-decoration: none;
+}
+.fc .fc-col-header-cell-cushion:hover { color: var(--theme-primary-hover); }
 
 /* =========================================
    FlowCommentItem panels (意見建議 / 討論)
