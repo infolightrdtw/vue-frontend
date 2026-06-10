@@ -27,7 +27,7 @@
 
         <!-- queryMode='Panel' / 'PanelAuto': inline query form above the grid -->
         <div v-if="isQueryPanel && queryColumns.length" class="dg-query-panel mb-2 p-2 border rounded bg-light">
-            <BHtmlForm :row="queryValues" :columns="queryColumns" :horizontalColumnsCount="queryColumnsCount"></BHtmlForm>
+            <BHtmlForm :row="queryValues" :columns="internalQueryColumns" :horizontalColumnsCount="queryColumnsCount"></BHtmlForm>
             <div class="text-end mt-2">
                 <button class="btn btn-primary btn-sm" @click="runQuery">{{ queryText }}</button>
             </div>
@@ -54,7 +54,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="query-form-wrap">
-                            <BHtmlForm :row="queryValues" :columns="queryColumns" :horizontalColumnsCount="queryColumnsCount"></BHtmlForm>
+                            <BHtmlForm :row="queryValues" :columns="internalQueryColumns" :horizontalColumnsCount="queryColumnsCount"></BHtmlForm>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -188,6 +188,7 @@
     import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick, toRaw, getCurrentInstance } from 'vue'
     import { v4 as uuidv4 } from 'uuid';
     import { Modal } from 'bootstrap'
+    import axios from 'axios'
     import dataUtils from '@/utils/dataApi'
     import defaultThemeUrl from '@/assets/stylesheets/themes/vue_default.css?url'
     import blackThemeUrl from '@/assets/stylesheets/themes/vue_black.css?url'
@@ -383,6 +384,19 @@
     const sort = ref('')
     const order = ref('asc')
     const queryValues = ref({})
+
+    const internalQueryColumns = computed(() => {
+        const cols = (props.queryColumns || []) as any[]
+        const dupFields = new Set<string>()
+        const counts: Record<string, number> = {}
+        cols.forEach(c => { counts[c.field] = (counts[c.field] || 0) + 1 })
+        Object.keys(counts).forEach(f => { if (counts[f] > 1) dupFields.add(f) })
+        return cols.map((qc, i) => {
+            const realField = qc.field
+            const qkey = dupFields.has(realField) ? `${realField}__q${i}` : realField
+            return { ...qc, field: qkey, _qfield: realField }
+        })
+    })
     const autoQueryValues = ref({} as Record<string, unknown>)
     const hiddenColumnFields = ref(new Set<string>())
     const checkedRows = ref(new Set<number>())
@@ -738,12 +752,12 @@
                 else {
                     //query
                     const whereItems = []
-                    const qCols = props.queryColumns || []
+                    const qCols = internalQueryColumns.value
                     qCols.forEach(qc => {
                         let value = queryValues.value[qc.field]
-                        if (value !== undefined & value !== '') {
+                        if (value !== undefined && value !== '') {
                             whereItems.push({
-                                field: qc.field,
+                                field: qc._qfield,
                                 operator: qc.operator,
                                 value
                             })
@@ -928,7 +942,7 @@
     function runFuzzyQuery() {
         const text = fuzzyText.value
         const next: Record<string, unknown> = {}
-        ;(props.queryColumns || []).forEach((qc: any) => {
+        internalQueryColumns.value.forEach((qc: any) => {
             if (qc?.field) next[qc.field] = text
         })
         queryValues.value = next
@@ -1362,14 +1376,38 @@
     }
 
 
-    function triggerFileDownload(file: string, downloadName: string, inline = false) {
-        const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '')
-        const n = encodeURIComponent(downloadName || '')
-        const url = `${baseUrl}/file?q=${file}&n=${n}${inline ? '&t=inline' : ''}`
+    async function triggerFileDownload(file: string, downloadName: string, inline = false) {
         if (inline) {
-            window.open(url)
-        } else {
-            window.location.href = url
+            const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '')
+            const n = encodeURIComponent(downloadName || '')
+            window.open(`${baseUrl}/file?q=${file}&n=${n}&t=inline`)
+            return
+        }
+
+        try {
+            const resp = await axios.get('/file', {
+                params: { q: file, n: downloadName || '' },
+                responseType: 'blob'
+            })
+            const blob = resp.data as Blob
+            const ct = String(resp.headers?.['content-type'] || (blob && blob.type) || '').toLowerCase()
+            if (!blob || blob.size === 0 || ct.includes('text/html')) {
+                $.showError($.localeMessages?.value?.error || 'Export failed')
+                return
+            }
+            const ext = (String(file).match(/\.[^./\\]+$/) || [''])[0]
+            const base = downloadName || String(file).replace(/^.*[\\/]/, '')
+            const name = ext && !base.toLowerCase().endsWith(ext.toLowerCase()) ? base + ext : base
+            const objectUrl = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = objectUrl
+            a.download = name
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            setTimeout(() => URL.revokeObjectURL(objectUrl), 1500)
+        } catch (e) {
+            $.showError(e)
         }
     }
 
@@ -1388,11 +1426,11 @@
             return result
         }
         const whereItems: any[] = []
-        const qCols = props.queryColumns || []
+        const qCols = internalQueryColumns.value
         qCols.forEach((qc: any) => {
             const value = queryValues.value[qc.field]
             if (value !== undefined && value !== '') {
-                whereItems.push({ field: qc.field, operator: qc.operator, value })
+                whereItems.push({ field: qc._qfield, operator: qc.operator, value })
             }
         })
         Object.entries(autoQueryValues.value).forEach(([field, value]: any) => {
