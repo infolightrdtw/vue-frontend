@@ -1,5 +1,5 @@
 <template>
-    <div class="d-flex flex-column vh-100 main">
+    <div class="d-flex flex-column vh-100 main" :class="{ 'sidebar-collapsed': !isSideShow }">
         <!-- Navbar -->
         <nav class="navbar navbar-dark px-3 topbar">
             <a class="navbar-brand d-flex align-items-center">
@@ -142,7 +142,7 @@
 </template>
 
 <script lang="ts" setup>
-    import { ref, computed, onMounted, onUnmounted } from 'vue'
+    import { ref, computed, onMounted, onUnmounted, watch, provide } from 'vue'
     import axios from 'axios'
     import pageUtils from '@/utils/pageApi'
     import { isMenuItemVisible } from '@/utils/menuSearch'
@@ -154,6 +154,9 @@
     import defaultThemeUrl from '@/assets/stylesheets/themes/vue_default.css?url'
     import blackThemeUrl from '@/assets/stylesheets/themes/vue_black.css?url'
     import violetThemeUrl from '@/assets/stylesheets/themes/vue_violet.css?url'
+    import greenThemeUrl from '@/assets/stylesheets/themes/vue_green.css?url'
+    import indigoThemeUrl from '@/assets/stylesheets/themes/vue_indigo.css?url'
+    import mauveThemeUrl from '@/assets/stylesheets/themes/vue_mauve.css?url'
 
     import defaultLogo from '@/assets/images/logo-infolight.png'
     import defaultBg from '@/assets/images/bg_main.png'
@@ -195,6 +198,15 @@
         return activeTab ? activeTab.id : null;
     });
 
+    /* Sidebar accordion state — Vue-managed so a heading can be toggled
+       shut by clicking the same heading, and so clicks outside the
+       sidebar can collapse every open group at once. */
+    const sidebarOpenId = ref<any>(null);
+    provide('sidebarAccordion', {
+        activeId: sidebarOpenId,
+        setActive: (id: any) => { sidebarOpenId.value = id; }
+    });
+
     async function logoutUser() {
         await logout()
         window.sessionStorage.removeItem('clientInfo')
@@ -228,7 +240,10 @@
     const themeMap: Record<string, string> = {
         'default': defaultThemeUrl,
         'black': blackThemeUrl,
-        'violet': violetThemeUrl
+        'violet': violetThemeUrl,
+        'green': greenThemeUrl,
+        'indigo': indigoThemeUrl,
+        'mauve': mauveThemeUrl
     };
 
     const themeList = Object.keys(themeMap);
@@ -384,140 +399,354 @@
         }
     }
 
+    // When the parent contextmenu closes, also reset its fly-out submenus so they
+    // don't auto-reappear in their previous open state next time.
+    watch(isShowContextmenu, (open) => {
+        if (!open) {
+            isShowThemeMenu.value = false;
+            isShowLanguageMenu.value = false;
+        }
+    });
+
+    // Close any open dropdown / sidebar accordion when clicking outside.
+    function handleDocumentClick(e: MouseEvent) {
+        const target = e.target as HTMLElement | null;
+        const inDropdown = !!(target && target.closest('.dropdown'));
+        const inSidebar  = !!(target && target.closest('.sidebar'));
+
+        if (!inDropdown) {
+            if (isShowContextmenu.value)  isShowContextmenu.value  = false;
+            if (isShowThemeMenu.value)    isShowThemeMenu.value    = false;
+            if (isShowLanguageMenu.value) isShowLanguageMenu.value = false;
+        }
+        if (!inSidebar) {
+            if (sidebarOpenId.value !== null) sidebarOpenId.value = null;
+            // Also drop browser focus / blue outline left on the last-clicked item
+            const ae = document.activeElement as HTMLElement | null;
+            if (ae && ae.closest && ae.closest('.sidebar')) ae.blur();
+        }
+    }
+
     onMounted(() => {
         const savedTheme = stateManager.get('theme', 'default');
         changeTheme(savedTheme);
 
         window.addEventListener('message', handleMessage);
+        document.addEventListener('click', handleDocumentClick);
     });
 
     onUnmounted(() => {
         window.removeEventListener('message', handleMessage);
+        document.removeEventListener('click', handleDocumentClick);
     });
 </script>
 
 <style scoped>
+    /* ============================================================
+       Outer framework — theme-aware via CSS variables defined in
+       the active theme file (themes/vue_*.css). Falls back to
+       sensible defaults if no theme is loaded.
+       ============================================================ */
     .main {
         --sidebar-width: clamp(200px, 18vw, 320px);
+        /* fallbacks for when theme not yet loaded */
+        --fw-grad-start: var(--theme-title-grad-start, #368dff);
+        --fw-grad-end:   var(--theme-title-grad-end,   #000ad3);
+        --fw-primary:    var(--theme-primary,          #000ad3);
+        --fw-hover-bg:   var(--theme-table-bg,         #d6ecff);
+        --fw-chrome:     var(--theme-primary,          #000ad3);
+    }
+    .main.sidebar-collapsed {
+        --sidebar-width: 18px;
     }
 
+    /* ===== Topbar =====
+       Right portion is plain white. The left "chrome" portion is a real
+       absolutely-positioned ::before whose `width` resolves the var — so
+       it transitions smoothly together with .sidebar's width. */
     .topbar {
-        background: linear-gradient( to right, #002b93 0, #002b93 var(--sidebar-width), #ffffff var(--sidebar-width), #ffffff 100% );
+        position: relative;
+        background: #ffffff;
+        border-bottom: 1px solid rgba(0, 0, 0, .06);
+        padding-top: .35rem;
+        padding-bottom: .35rem;
+    }
+    .topbar::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: var(--sidebar-width);
+        background-color: var(--fw-chrome);
+        transition: width .25s ease, background-color .35s ease;
+        z-index: 0;
+    }
+    .topbar > * { position: relative; z-index: 1; }
+    .topbar :deep(.navbar-brand) {
+        transition: opacity .2s ease, transform .25s ease;
+        transform-origin: left center;
+    }
+    .main.sidebar-collapsed .topbar :deep(.navbar-brand) {
+        opacity: 0;
+        transform: scaleX(.4);
+        pointer-events: none;
     }
 
     .user-name {
-        color: #002b93 !important;
+        color: var(--fw-primary) !important;
         font-weight: 600;
+        padding: .35rem .85rem;
+        border-radius: .375rem;
+        text-decoration: none;
+        transition: background-color .15s ease, color .15s ease;
+    }
+    .user-name:hover,
+    .user-name:focus {
+        background-color: rgba(0, 0, 0, .05);
+    }
+    .user-name.dropdown-toggle::after {
+        margin-left: .4em;
+        vertical-align: .15em;
     }
 
+    /* ===== Dropdown (contextmenu + theme/language fly-outs) ===== */
+    .dropdown-menu {
+        right: 0;
+        min-width: 180px;
+        border: 1px solid rgba(0, 0, 0, .08);
+        border-radius: .5rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+        padding: .35rem;
+        margin-top: .35rem;
+    }
+    .dropdown-item {
+        border-radius: .375rem;
+        padding: .5rem .75rem;
+        color: #333;
+        transition: background-color .15s ease, color .15s ease;
+    }
+    .dropdown-item:hover,
+    .dropdown-item:focus {
+        background-color: var(--fw-hover-bg);
+        color: var(--fw-primary);
+    }
+    .dropdown-item:active,
+    .dropdown-item.active {
+        background-color: var(--fw-primary);
+        color: #fff;
+    }
+    .dropdown-divider {
+        margin: .35rem 0;
+        border-top-color: rgba(0, 0, 0, .08);
+    }
+
+    /* ===== Sidebar =====
+       Width resolves the same var as topbar::before, so both transition
+       together. Background image uses mix-blend-mode so it tints with the
+       theme colour automatically. */
     .sidebar {
-        background-color: #002b93;
+        background-color: var(--fw-chrome);
         position: relative;
         overflow: hidden;
         width: var(--sidebar-width);
+        transition: width .25s ease, background-color .35s ease;
+    }
+    /* Decorative artwork — fills the whole sidebar then uses a soft mask
+       gradient so the artwork fades in from the top instead of starting
+       on a hard horizontal edge. mix-blend-mode lets the silhouette pick
+       up whatever the current theme colour is. */
+    .sidebar::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url('/src/assets/images/sidebar.png');
+        background-repeat: no-repeat;
+        background-position: center bottom;
+        background-size: cover;
+        mix-blend-mode: screen;
+        opacity: 0.6;
+        pointer-events: none;
+        z-index: 0;
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,.15) 35%, rgba(0,0,0,.6) 60%, #000 85%);
+                mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,.15) 35%, rgba(0,0,0,.6) 60%, #000 85%);
+        transition: opacity .25s ease;
+    }
+    .main.sidebar-collapsed .sidebar::after { opacity: 0; }
+    .sidebar > * {
+        position: relative;
+        z-index: 1;
     }
 
-        .sidebar.min {
-            width: 18px;
-        }
+    .sidebar :deep(.panel),
+    .sidebar :deep(.panel-heading),
+    .sidebar :deep(.panel-body),
+    .sidebar :deep(.list-group-item) {
+        background: transparent !important;
+        border: none !important;
+    }
+    .sidebar :deep(.panel-body) {
+        padding: 0 !important;
+    }
 
-        .sidebar::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            top: 45px;
-            background-color: #002b93;
-            background-image: url('/src/assets/images/sidebar.png');
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-blend-mode: screen;
-            opacity: 0.9;
-            pointer-events: none;
-            z-index: 0;
-        }
+    /* ----- Shared chip geometry -----
+       All clickable rows (group heading + items + nested items) share the
+       same height, font-size, horizontal inset and corner radius. Only
+       the indent and visual weight differ between levels. */
+    .sidebar :deep(.panel-heading),
+    .sidebar :deep(.list-group-item) {
+        margin: .12rem .5rem;
+        border-radius: .45rem !important;
+        line-height: 1.45;
+        transition: background-color .15s ease, color .15s ease;
+    }
 
-        .sidebar > * {
-            position: relative;
-            z-index: 1;
-        }
+    /* ----- Level 1 : group heading — always prominent (chip style) ----- */
+    .sidebar :deep(.panel-heading) {
+        background-color: rgba(255, 255, 255, .08) !important;
+        margin-top: .45rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .sidebar :deep(.panel-group > :first-child .panel-heading) {
+        margin-top: .35rem;
+    }
+    /* Full-height left accent bar (clipped by the chip's border-radius) */
+    .sidebar :deep(.panel-heading)::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: rgba(255, 255, 255, .55);
+        transition: background-color .15s ease;
+    }
+    .sidebar :deep(.panel-heading a) {
+        display: block;
+        color: #ffffff !important;
+        font-weight: 700;
+        letter-spacing: .02em;
+        text-decoration: none;
+        text-shadow: none;
+        padding: .55rem 2rem .55rem 1.1rem;
+        transition: background-color .15s ease;
+        position: relative;
+        outline: none;
+    }
+    /* Right-side chevron */
+    .sidebar :deep(.panel-heading a)::after {
+        content: "\203A";
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-55%) rotate(0);
+        transition: transform .25s ease, opacity .15s ease;
+        opacity: .7;
+        font-weight: 600;
+        line-height: 1;
+    }
+    .sidebar :deep(.panel-heading a[aria-expanded="true"])::after {
+        transform: translateY(-55%) rotate(90deg);
+        opacity: 1;
+    }
+    .sidebar :deep(.panel-heading:hover) {
+        background-color: rgba(255, 255, 255, .14) !important;
+    }
+    .sidebar :deep(.panel-heading:has(a[aria-expanded="true"])) {
+        background-color: rgba(255, 255, 255, .16) !important;
+    }
+    .sidebar :deep(.panel-heading:has(a[aria-expanded="true"]))::before {
+        background-color: #ffffff;
+    }
 
-        .sidebar :deep(.panel),
-        .sidebar :deep(.panel-heading),
-        .sidebar :deep(.panel-body),
-        .sidebar :deep(.list-group-item) {
-            background: transparent !important;
-            border: none !important;
-        }
+    /* ----- Level 2 : first-level items ----- */
+    .sidebar :deep(.list-group-item) {
+        color: rgba(255, 255, 255, .88) !important;
+        padding: .55rem 1rem .55rem 1.55rem !important;
+        text-shadow: none !important;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+    .sidebar :deep(.list-group-item i),
+    .sidebar :deep(.list-group-item .menu-toggle) {
+        margin-right: .55rem;
+        color: rgba(255, 255, 255, .85);
+        text-shadow: none;
+        opacity: .82;
+    }
+    .sidebar :deep(.list-group-item:hover) {
+        background-color: rgba(255, 255, 255, .12) !important;
+        color: #ffffff !important;
+    }
+    /* Active item — themed-filled rounded chip (matches heading geometry) */
+    .sidebar :deep(.list-group-item.active) {
+        background-color: rgba(255, 255, 255, .96) !important;
+        color: var(--fw-primary) !important;
+        font-weight: 600;
+    }
 
-        .sidebar :deep(.panel-heading) {
-            background: #002b93 !important;
-        }
+    /* ----- Level 3 : nested submenu items ----- */
+    .sidebar :deep(.panel-child .list-group-item) {
+        padding-left: 2.5rem !important;
+        color: rgba(255, 255, 255, .78) !important;
+    }
+    .sidebar :deep(.panel-child .list-group-item.active) {
+        color: var(--fw-primary) !important;
+    }
 
-        .sidebar :deep(.panel-heading a) {
-            color: #ffffff !important;
-            font-weight: bold;
-        }
-
-        .sidebar :deep(.panel-heading a:hover),
-        .sidebar :deep(.panel-heading a[aria-expanded="true"]) {
-            color: #00e5ff !important;
-        }
-
-
-        .sidebar :deep(.list-group-item) {
-            background: #013b99 !important;
-            color: #ffffff !important;
-        }
-
-        .sidebar :deep(.list-group-item:hover) {
-            background: #014bb5 !important;
-            color: #00e5ff !important;
-        }
-
-        .sidebar :deep(.list-group-item.active) {
-            background: #2678ff !important;
-            color: #00e5ff !important;
-            font-weight: bold;
-        }
-
+    /* ===== Main content area ===== */
     .main-container {
         background-color: #f3f5f9 !important;
         padding: 5px 18px;
     }
+    .main-container > .nav {
+        border-bottom: 1px solid #ddd;
+    }
 
-        .main-container > .nav {
-            border-bottom: 1px solid #ddd;
-        }
+    /* Tabs (NavItem) */
+    .main-container :deep(.nav-pills .nav-link) {
+        color: #333;
+        border-radius: .375rem .375rem 0 0;
+        padding: .45rem .9rem;
+        margin-right: 2px;
+        transition: background-color .15s ease, color .15s ease;
+    }
+    .main-container :deep(.nav-pills .nav-link:hover) {
+        background-color: var(--fw-hover-bg);
+        color: var(--fw-primary);
+    }
+    .main-container :deep(.nav-pills .nav-link.active) {
+        background-color: var(--fw-primary);
+        color: #fff;
+    }
 
+    /* ===== Misc ===== */
     :deep(.table td),
     :deep(.table th) {
         color: #475569 !important;
     }
-
     .divToggle {
         text-align: right;
         padding: 5px;
     }
-
     .sidebar-toggle {
         cursor: pointer;
+        color: #ffffff;
+        opacity: 0.85;
+        transition: opacity .15s ease;
     }
-
+    .sidebar-toggle:hover {
+        opacity: 1;
+    }
     .sidebar-title {
         font-size: 0.9rem;
         opacity: 0.8;
     }
-
     * {
         font-size: 16px !important;
     }
-
     .tab-pane {
         height: 100%;
     }
-
     :deep(#tab-pane-home) {
         background-image: v-bind(homeBgImage);
         background-repeat: no-repeat;
@@ -525,11 +754,7 @@
         background-size: cover;
     }
 
-    .dropdown-menu {
-        right: 0;
-        min-width: 100px;
-    }
-
+    /* ===== Menu search (sidebar-internal) ===== */
     .menu-search-wrap {
         padding: 0 10px 8px;
     }
@@ -554,8 +779,8 @@
         .menu-search-input:focus {
             background: rgba(255, 255, 255, 0.15);
             color: #ffffff;
-            border-color: #00e5ff;
-            box-shadow: 0 0 0 0.15rem rgba(0, 229, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 0 0.15rem rgba(255, 255, 255, 0.2);
         }
 
     .menu-search-empty {
@@ -567,7 +792,7 @@
 
     .sidebar :deep(.menu-search-hit) {
         background: #ffeb3b;
-        color: #002b93;
+        color: var(--fw-primary);
         padding: 0 2px;
         border-radius: 2px;
         font-weight: bold;

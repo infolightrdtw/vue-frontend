@@ -1,0 +1,9 @@
+:root{
+  --theme-title-grad-start:#b29ec0;
+  --theme-title-grad-end:#6e547d;
+  --theme-primary:#6e547d;
+  --theme-primary-hover:#553f60;
+  --theme-table-bg:#f5f0f7;
+  --theme-row-selected:#d0c0db;
+  --theme-focus-ring: rgba(110,84,125,.22);
+}

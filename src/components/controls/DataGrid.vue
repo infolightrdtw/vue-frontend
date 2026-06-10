@@ -193,12 +193,18 @@
     import defaultThemeUrl from '@/assets/stylesheets/themes/vue_default.css?url'
     import blackThemeUrl from '@/assets/stylesheets/themes/vue_black.css?url'
     import violetThemeUrl from '@/assets/stylesheets/themes/vue_violet.css?url'
+    import greenThemeUrl from '@/assets/stylesheets/themes/vue_green.css?url'
+    import indigoThemeUrl from '@/assets/stylesheets/themes/vue_indigo.css?url'
+    import mauveThemeUrl from '@/assets/stylesheets/themes/vue_mauve.css?url'
     import flowUtils from '@/utils/flowApi'
 
     const themeMap: Record<string, string> = {
         'default': defaultThemeUrl,
         'black': blackThemeUrl,
-        'violet': violetThemeUrl
+        'violet': violetThemeUrl,
+        'green': greenThemeUrl,
+        'indigo': indigoThemeUrl,
+        'mauve': mauveThemeUrl
     };
 
     function applyIframeTheme(themeName: string) {
