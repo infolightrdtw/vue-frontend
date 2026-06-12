@@ -4,6 +4,39 @@ import path from 'path'
 import Components from 'unplugin-vue-components/vite'
 import VueRouter from 'unplugin-vue-router/vite'
 
+const EEP_BACKEND = 'https://localhost:44368'
+
+const sysPageProxy = {
+    '/bootstrap': {
+        target: EEP_BACKEND,
+        changeOrigin: true,
+        secure: false,
+        bypass(req) {
+            const path = (req.url || '').split('?')[0]
+            const segs = path.replace(/^\/bootstrap\/?/, '').split('/').filter(Boolean)
+            const first = decodeURIComponent(segs[0] || '')
+            if (segs.length === 1 && /^sys/i.test(first)) {
+                return null // 代理到 Core（serve Razor view）
+            }
+            return req.url // 交還 SPA
+        }
+    },
+    '/main': {
+        target: EEP_BACKEND,
+        changeOrigin: true,
+        secure: false,
+        bypass(req) {
+            const path = (req.url || '').split('?')[0]
+            if (req.method === 'POST' || path.startsWith('/main/')) {
+                return null 
+            }
+            return req.url 
+        }
+    },
+    '/scripts': { target: EEP_BACKEND, changeOrigin: true, secure: false },
+    '/stylesheets': { target: EEP_BACKEND, changeOrigin: true, secure: false }
+}
+
 export default defineConfig({
     base: '/',
     plugins: [
@@ -37,7 +70,9 @@ export default defineConfig({
                 target: 'https://localhost:44368',
                 changeOrigin: true,
                 secure: false
-            }
+            },
+
+            ...sysPageProxy
         },
         allowedHosts: ['eepcloud.infolight.com']
     },
@@ -54,7 +89,9 @@ export default defineConfig({
                 target: 'https://localhost:44368',
                 changeOrigin: true,
                 secure: false
-            }
+            },
+
+            ...sysPageProxy
         }
     }
 })

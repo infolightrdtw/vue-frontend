@@ -145,6 +145,7 @@
     import { ref, computed, onMounted, onUnmounted, watch, provide } from 'vue'
     import axios from 'axios'
     import pageUtils from '@/utils/pageApi'
+    import emitter from '@/utils/emitter'
     import { isMenuItemVisible } from '@/utils/menuSearch'
     import ChangePassword from './ChangePassword.vue'
     import SignatureModal from '@/pages/SignatureModal.vue'
@@ -267,6 +268,7 @@
             f.contentWindow?.postMessage({ type: 'THEME_CHANGE', theme: themeName }, '*');
         });
 
+        emitter.emit('themeChange', themeName);
         isShowThemeMenu.value = false;
         isShowContextmenu.value = false;
     }

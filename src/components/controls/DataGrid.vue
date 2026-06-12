@@ -839,7 +839,7 @@
 
     async function loadData(data) {
         await loadRelations(data)
-        keys = data.keys.split(',')
+        keys = data.keys ? data.keys.split(',') : []
         acceptChanges()
         rows.splice(0, rows.length)
 
@@ -1679,6 +1679,77 @@
         }
     }
 
+
+    async function exportExcel(options: any = {}) {
+        const o = typeof options === 'string' ? { name: options } : (options || {})
+        const q = collectQueryFilter()
+        const param: any = {
+            remoteName: props.remoteName,
+            headRemoteName: o.headRemoteName,
+            whereItems: o.whereItems || q.whereItems,
+            whereStr: q.whereStr,
+            fileType: o.fileType,
+            detailRows: o.detailRows,
+            excelName: o.excelName,
+            sort: o.sort || (sort.value ? sort.value : undefined),
+            order: o.sort ? o.order : (sort.value ? order.value : undefined),
+            downloadName: o.downloadName || '',
+            directOpen: o.directOpen || false,
+            password: o.password,
+            watermark: o.watermark,
+            headTitle: o.headTitle || '',
+            titleName: o.titleName
+        }
+        const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
+        if ($.loading) $.loading(document.body, loadingMsg)
+        const paths = window.location.pathname.split('/')
+
+        const name = (o.name || decodeURI(paths[paths.length - 1])).replace(/_Query$/, '')
+        try {
+            const { exportFile } = dataUtils(props.remoteName)
+            const file = await exportFile('excel', name, param)
+            if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
+            const downloadName = param.downloadName !== '' ? param.downloadName : name
+            triggerFileDownload(file, downloadName, o.fileType === 'pdf' && param.directOpen)
+        } catch (error) {
+            $.showError(error)
+        } finally {
+            if ($.loaded) $.loaded(document.body)
+        }
+    }
+
+    async function exportReport(options: any = {}) {
+        const o = typeof options === 'string' ? { name: options } : (options || {})
+        const reportName = (props as any).reportName
+        if (!reportName) {
+            $.showError('exportReport: ReportName prop is empty')
+            return
+        }
+        const q = collectQueryFilter()
+        const param: any = {
+            remoteName: props.remoteName,
+            reportName,
+            whereItems: o.whereItems || q.whereItems,
+            whereStr: q.whereStr,
+            fileType: o.fileType || 'pdf',
+            downloadName: o.downloadName || '',
+            directOpen: o.directOpen !== false
+        }
+        const loadingMsg = $.localeMessages?.value?.exporting || 'Exporting...'
+        if ($.loading) $.loading(document.body, loadingMsg)
+        try {
+            const { exportFile } = dataUtils(props.remoteName)
+            const file = await exportFile('report', reportName, param)
+            if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
+            const downloadName = param.downloadName !== '' ? param.downloadName : reportName
+            triggerFileDownload(file, downloadName, param.fileType === 'pdf' && param.directOpen)
+        } catch (error) {
+            $.showError(error)
+        } finally {
+            if ($.loaded) $.loaded(document.body)
+        }
+    }
+
     function getDefaultValues() {
         const dParam = {
             parent: getParentValues(),
@@ -1838,7 +1909,9 @@
         exportWordPdf,
         exportWordLoop,
         exportWordAll,
-        exportPDF
+        exportPDF,
+        exportExcel,
+        exportReport
     }
 
     const EXPOSE_METHODS = {
@@ -1905,56 +1978,6 @@
             hasQueried.value = true
             return load()
         },
-        exportExcel: async (options: any = {}) => {
-            const opts = typeof options === 'string' ? { name: options } : (options || {})
-            const index = selectedIndex.value
-            const masterRow = index >= 0 ? toRaw(rows[index]) : null
-            const param: any = {
-                remoteName: props.remoteName,
-                masterRow,
-                fileType: opts.fileType || 'xlsx',
-                wordName: opts.wordName || opts.fileName,
-                downloadName: opts.downloadName || ''
-            }
-            const paths = window.location.pathname.split('/')
-            const name = opts.name || decodeURI(paths[paths.length - 1])
-            try {
-                const { exportFile } = dataUtils(props.remoteName)
-                const file = await exportFile('excel', name, param)
-                if (!file) { $.showError($.localeMessages?.value?.error || 'Export failed'); return }
-                const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '')
-                const newName = encodeURIComponent(param.downloadName || name)
-                const link = document.createElement('a')
-                link.href = `${baseUrl}/file?q=${file}&n=${newName}`
-                link.setAttribute('download', '')
-                document.body.appendChild(link); link.click(); document.body.removeChild(link)
-            } catch (e) { $.showError(e) }
-        },
-
-        exportReport: async (options: any = {}) => {
-            const opts = typeof options === 'string' ? { name: options } : (options || {})
-            const reportName = (props as any).reportName
-            if (!reportName) {
-                $.showError('exportReport: ReportName prop is empty')
-                return
-            }
-            const param = {
-                remoteName: props.remoteName,
-                reportName,
-                fileType: opts.fileType || 'pdf',
-                downloadName: opts.downloadName || ''
-            }
-            try {
-                const { exportFile } = dataUtils(props.remoteName)
-                const file = await exportFile('report', reportName, param)
-                if (!file) return
-                const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/+$/, '')
-                const newName = encodeURIComponent(param.downloadName || reportName)
-                window.open(`${baseUrl}/file?q=${file}&n=${newName}&t=inline`)
-            } catch (e) { $.showError(e) }
-        },
-
-
         importExcel: () => triggerExcelImport(true),
         importExcelNotApply: () => triggerExcelImport(false)
     })
